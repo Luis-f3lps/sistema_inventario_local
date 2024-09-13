@@ -22,7 +22,6 @@ Certifique-se de que você tem as seguintes ferramentas instaladas:
 
 Instale as dependências do projeto com o npm:
 
-   ```bash
    npm install
 
 3. **Configurar o Banco de Dados MySQL**
