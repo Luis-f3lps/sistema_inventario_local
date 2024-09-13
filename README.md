@@ -28,13 +28,13 @@ Instale as dependências do projeto com o npm:
 
 Certifique-se de que o MySQL está rodando em sua máquina local.
 
-   ```bash
-   git clone https://github.com/seu-usuario/sistema-inventario.git
-   cd sistema-inventario
-4. **Clonar o Repositório**
+4. **Configuração do .env**
 
-   Clone o repositório para a sua máquina local:
+   Crie um arquivo .env na raiz do projeto e adicione as variáveis de ambiente conforme abaixo. Esse arquivo será usado para configurar a conexão com o banco de dados MySQL:
 
-   ```bash
-   git clone https://github.com/seu-usuario/sistema-inventario.git
-   cd sistema-inventario
+   PORT=3001
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=sua_senha
+   DB_NAME=nome_do_banco
