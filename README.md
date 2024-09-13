@@ -17,3 +17,25 @@ Certifique-se de que você tem as seguintes ferramentas instaladas:
    ```bash
    git clone https://github.com/seu-usuario/sistema-inventario.git
    cd sistema-inventario
+   
+2. **Instalar Dependências**
+
+Instale as dependências do projeto com o npm:
+
+   ```bash
+   npm install
+
+3. **Configurar o Banco de Dados MySQL**
+
+Certifique-se de que o MySQL está rodando em sua máquina local.
+
+   ```bash
+   git clone https://github.com/seu-usuario/sistema-inventario.git
+   cd sistema-inventario
+4. **Clonar o Repositório**
+
+   Clone o repositório para a sua máquina local:
+
+   ```bash
+   git clone https://github.com/seu-usuario/sistema-inventario.git
+   cd sistema-inventario
