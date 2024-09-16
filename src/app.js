@@ -137,13 +137,20 @@ app.get('/Relatorio', Autenticado, (req, res) => {
   const filePath = path.join(__dirname, 'public', 'relatorio.html');
   console.log('Caminho absoluto para Relatorio.html:', filePath);
 
-  res.sendFile(filePath, (err) => {
+  fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
-      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
-      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
-    } else {
-      console.log('Arquivo Relatorio.html enviado com sucesso.');
+      console.error('Arquivo não encontrado:', filePath);
+      return res.status(404).send('Arquivo não encontrado.');
     }
+
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Erro ao enviar o arquivo Relatorio.html:', err);
+        res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
+      } else {
+        console.log('Arquivo Relatorio.html enviado com sucesso.');
+      }
+    });
   });
 });
   
