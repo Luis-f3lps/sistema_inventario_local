@@ -73,7 +73,7 @@ function Autenticado(req, res, next) {
   }
 }
 
-  app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
   // Rota principal
   app.get('/', (req, res) => {
@@ -130,9 +130,10 @@ function Autenticado(req, res, next) {
   });
 
 
-    app.get('/Relatorio', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Relatorio.html'));
-    });
+app.get('/Relatorio', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Relatorio.html'));
+});
+
   
     app.get('/Usuarios', Autenticado, (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
