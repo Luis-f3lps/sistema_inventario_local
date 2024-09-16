@@ -72,14 +72,7 @@ function Autenticado(req, res, next) {
     res.redirect('/');
   }
 }
-   // Rotas protegidas
-    function authenticate(req, res, next) {
-      if (req.session && req.session.userId) {
-          next();
-      } else {
-          res.status(401).send('Não autorizado');
-      }
-  }
+
   app.use(express.static(path.join(__dirname, 'public')));
 
   // Rota principal
