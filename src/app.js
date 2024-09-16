@@ -26,9 +26,6 @@ app.use(session({
   }
 }));
 
-// Função para inicializar a conexão com o banco de dados
-import mysql from 'mysql2/promise';  // Certifique-se de que o mysql2 está instalado
-
 async function initializeDatabase() {
   try {
     console.log("Database Host:", process.env.DB_HOST);
