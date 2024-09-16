@@ -12,9 +12,47 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const app = express();
+const port = process.env.PORT || 3001;
+
+let pool;
+
+async function initializeDatabase() {
+  try {
+    console.log("Database Host:", process.env.DB_HOST);
+    console.log("Database Port:", process.env.DB_PORT);
+    console.log("Database User:", process.env.DB_USER);
+    console.log("Database Name:", process.env.DB_NAME);
+
+    // Criar o pool de conexões
+    pool = mysql.createPool({
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      connectionLimit: 10,
+      waitForConnections: true,
+      queueLimit: 0
+    });
+
+    // Testar a conexão com o banco de dados
+    const [rows] = await pool.query('SELECT 1 + 1 AS solution');
+    console.log('Connected to MySQL database!', rows);
+
+  } catch (error) {
+    console.error('Failed to connect to MySQL database:', error);
+    throw error;
+  }
+}
+
+// Chamar a função para inicializar o banco de dados
+initializeDatabase();
+
 // Middleware para análise do corpo da solicitação
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 
 // Configurar middleware de sessão
 app.use(session({
@@ -26,48 +64,6 @@ app.use(session({
     maxAge: 8 * 60 * 60 * 1000, // 8 horas
   }
 }));
-
-let pool;
-
-async function initializeDatabase() {
-  try {
-    console.log("Database Host:", process.env.DB_HOST);
-    console.log("Database Port:", process.env.DB_PORT);
-    console.log("Database User:", process.env.DB_USER);
-    console.log("Database Name:", process.env.DB_NAME);
-
-    pool = mysql.createPool({
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      connectionLimit: 4,
-      waitForConnections: true,
-      queueLimit: 0
-    });
-
-    const [rows] = await pool.query('SELECT 1 + 1 AS solution');
-    console.log('Connected to MySQL database!', rows);
-
-  } catch (error) {
-    console.error('Failed to connect to MySQL database:', error);
-    throw error;
-  }
-}
-
-initializeDatabase();
-
-export { pool };
-// Iniciar o servidor após a conexão com o banco de dados ser estabelecida
-initializeDatabase().then(() => {
-  app.listen(process.env.PORT || 3001, () => {
-    console.log(`Server is running on http://localhost:${process.env.PORT || 3001}`);
-  });
-}).catch(error => {
-  console.error("Failed to start server:", error);
-});
-
 
 // Função de autenticação
 function Autenticado(req, res, next) {
