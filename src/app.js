@@ -133,11 +133,19 @@ app.use(express.static(path.join(__dirname, 'public')));
       res.send('Conteúdo protegido');
   });
 
-
 app.get('/Relatorio', Autenticado, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'Relatorio.html'));
-});
+  const filePath = path.join(__dirname, 'public', 'relatorio.html');
+  console.log('Caminho absoluto para Relatorio.html:', filePath);
 
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
+    } else {
+      console.log('Arquivo Relatorio.html enviado com sucesso.');
+    }
+  });
+});
   
     app.get('/Usuarios', Autenticado, (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
