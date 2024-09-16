@@ -14,44 +14,48 @@ const __dirname = path.dirname(__filename);
 
 const port = process.env.PORT || 3001;
 
-let pool;
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'seuSegredo',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { 
+    secure: false,
+    maxAge: 8 * 60 * 60 * 1000,
+  }
+}));
 
 async function initializeDatabase() {
   try {
-    console.log("Database Host:", process.env.DB_HOST);
-    console.log("Database Port:", process.env.DB_PORT);
-    console.log("Database User:", process.env.DB_USER);
-    console.log("Database Name:", process.env.DB_NAME);
-
-    // Criar o pool de conexões
-    pool = mysql.createPool({
+    const connection = await mysql.createConnection({
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      connectionLimit: 10,
-      waitForConnections: true,
-      queueLimit: 0
+      database: process.env.DB_NAME
     });
 
-    // Testar a conexão com o banco de dados
-    const [rows] = await pool.query('SELECT 1 + 1 AS solution');
-    console.log('Connected to MySQL database!', rows);
+    console.log("Connected to MySQL database");
+    global.connection = connection;
 
   } catch (error) {
-    console.error('Failed to connect to MySQL database:', error);
+    console.error("Failed to connect to MySQL database:", error);
     throw error;
   }
 }
 
-// Chamar a função para inicializar o banco de dados
-initializeDatabase();
+initializeDatabase().then(() => {
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+});
 
 // Middleware para análise do corpo da solicitação
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Configurar middleware de sessão
 app.use(session({
