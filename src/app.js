@@ -1,36 +1,36 @@
-﻿import express from 'express';
+import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
-import session from 'express-session'; 
+import session from 'express-session';
 
-dotenv.config({ path: 'D:/mariadb-10.4.11-winx64/variaveis.env' });
+// Carregar variáveis de ambiente
+dotenv.config(); // Assume que o arquivo .env está no diretório raiz do projeto
 
-
-initializeDatabase();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Middleware para interpretar JSON e URL encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configurar middleware de sessão
 app.use(session({
-  secret: 'seuSegredo', // substitua por uma senha 
+  secret: process.env.SESSION_SECRET || 'seuSegredo', // Use um segredo seguro em produção
   resave: false,
   saveUninitialized: true,
   cookie: { 
-    secure: false, // Use 'true' em produção com HTTPS
+    secure: false, // Defina como 'true' se estiver usando HTTPS
     maxAge: 8 * 60 * 60 * 1000, // 8 horas em milissegundos
   }
 }));
 
-// autenticação
+// Função de autenticação
 function Autenticado(req, res, next) {
   if (req.session.user) {
     return next();
@@ -42,7 +42,7 @@ function Autenticado(req, res, next) {
 // Inicializar banco de dados
 async function initializeDatabase() {
   try {
-    // Logar as variáveis de ambiente
+    // Logar variáveis de ambiente
     console.log("Database User:", process.env.DB_USER);
     console.log("Database Password:", process.env.DB_PASSWORD);
     console.log("Database Host:", process.env.DB_HOST);
@@ -59,31 +59,22 @@ async function initializeDatabase() {
     });
 
     console.log("Connected to MySQL database");
-    return connection;
+    global.connection = connection; // Definir a conexão globalmente
   } catch (error) {
     console.error("Failed to connect to MySQL database:", error);
     throw error;
   }
 }
 
-// Executar a função de inicialização
-initializeDatabase();
-
-let connection;
-
-// Configurar rotas e iniciar o servidor
-initializeDatabase().then(conn => {
-  connection = conn;
-  // Aqui estamos modificando o servidor para escutar em todas as interfaces de rede
+// Executar a função de inicialização e iniciar o servidor
+initializeDatabase().then(() => {
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
     console.log(`Servidor rodando no endereço http://localhost:${PORT}`);
   });
-  
 }).catch(error => {
   console.error("Falha ao inicializar:", error);
 });
-
 
   app.use(express.static(path.join(__dirname, 'public')));
 
