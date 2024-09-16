@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
 import session from 'express-session';
 import bodyParser from 'body-parser';
+const fs = require('fs');
 
 dotenv.config(); // Carrega as variáveis de ambiente
 
