@@ -11,9 +11,9 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware para interpretar JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware para análise do corpo da solicitação
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Configurar middleware de sessão
 app.use(session({
