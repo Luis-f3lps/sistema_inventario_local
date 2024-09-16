@@ -26,6 +26,8 @@ app.use(session({
   }
 }));
 
+let pool;
+
 async function initializeDatabase() {
   try {
     console.log("Database Host:", process.env.DB_HOST);
@@ -33,24 +35,19 @@ async function initializeDatabase() {
     console.log("Database User:", process.env.DB_USER);
     console.log("Database Name:", process.env.DB_NAME);
 
-    // Criar o pool de conexões
-    const pool = mysql.createPool({
+    pool = mysql.createPool({
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      connectionLimit: 4, // Número máximo de conexões simultâneas no pool
+      connectionLimit: 4,
       waitForConnections: true,
-      queueLimit: 0 // Número máximo de conexões na fila
+      queueLimit: 0
     });
 
-    // Testar a conexão com o banco de dados
     const [rows] = await pool.query('SELECT 1 + 1 AS solution');
     console.log('Connected to MySQL database!', rows);
-
-    // Definir o pool globalmente
-    global.pool = pool;
 
   } catch (error) {
     console.error('Failed to connect to MySQL database:', error);
@@ -58,6 +55,9 @@ async function initializeDatabase() {
   }
 }
 
+initializeDatabase();
+
+export { pool };
 // Iniciar o servidor após a conexão com o banco de dados ser estabelecida
 initializeDatabase().then(() => {
   app.listen(process.env.PORT || 3001, () => {
