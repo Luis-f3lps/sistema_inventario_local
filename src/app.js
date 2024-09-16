@@ -40,7 +40,7 @@ async function initializeDatabase() {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      connectionLimit: 10, // Número máximo de conexões simultâneas no pool
+      connectionLimit: 4, // Número máximo de conexões simultâneas no pool
       waitForConnections: true,
       queueLimit: 0 // Número máximo de conexões na fila
     });
