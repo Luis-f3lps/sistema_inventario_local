@@ -73,7 +73,7 @@ function Autenticado(req, res, next) {
   }
 }
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
   // Rota principal
   app.get('/', (req, res) => {
