@@ -3,50 +3,35 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
-import PDFDocument from 'pdfkit';
-import fs from 'fs';
 import session from 'express-session';
 
-// Carregar variáveis de ambiente
-dotenv.config(); // Assume que o arquivo .env está no diretório raiz do projeto
+dotenv.config(); // Carrega as variáveis de ambiente
 
+const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-
-// Middleware para interpretar JSON e URL encoded
+// Middleware para interpretar JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configurar middleware de sessão
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'seuSegredo', // Use um segredo seguro em produção
+  secret: process.env.SESSION_SECRET || 'seuSegredo',
   resave: false,
   saveUninitialized: true,
   cookie: { 
-    secure: false, // Defina como 'true' se estiver usando HTTPS
-    maxAge: 8 * 60 * 60 * 1000, // 8 horas em milissegundos
+    secure: false, // Defina como false para desenvolvimento local
+    maxAge: 8 * 60 * 60 * 1000, // 8 horas
   }
 }));
 
-// Função de autenticação
-function Autenticado(req, res, next) {
-  if (req.session.user) {
-    return next();
-  } else {
-    res.redirect('/');
-  }
-}
-
-// Inicializar banco de dados
+// Função para inicializar a conexão com o banco de dados
 async function initializeDatabase() {
   try {
-    // Logar variáveis de ambiente
-    console.log("Database User:", process.env.DB_USER);
-    console.log("Database Password:", process.env.DB_PASSWORD);
     console.log("Database Host:", process.env.DB_HOST);
     console.log("Database Port:", process.env.DB_PORT);
+    console.log("Database User:", process.env.DB_USER);
     console.log("Database Name:", process.env.DB_NAME);
 
     // Criar a conexão com o banco de dados
@@ -59,23 +44,42 @@ async function initializeDatabase() {
     });
 
     console.log("Connected to MySQL database");
-    global.connection = connection; // Definir a conexão globalmente
+
+    // Definir a conexão globalmente
+    global.connection = connection;
+
   } catch (error) {
     console.error("Failed to connect to MySQL database:", error);
     throw error;
   }
 }
 
-// Executar a função de inicialização e iniciar o servidor
+// Iniciar o servidor após a conexão com o banco de dados ser estabelecida
 initializeDatabase().then(() => {
-  const PORT = process.env.PORT || 3001;
-  app.listen(PORT, () => {
-    console.log(`Servidor rodando no endereço http://localhost:${PORT}`);
+  app.listen(process.env.PORT || 3001, () => {
+    console.log(`Server is running on http://localhost:${process.env.PORT || 3001}`);
   });
 }).catch(error => {
-  console.error("Falha ao inicializar:", error);
+  console.error("Failed to start server:", error);
 });
 
+
+// Função de autenticação
+function Autenticado(req, res, next) {
+  if (req.session.user) {
+    return next();
+  } else {
+    res.redirect('/');
+  }
+}
+   // Rotas protegidas
+    function authenticate(req, res, next) {
+      if (req.session && req.session.userId) {
+          next();
+      } else {
+          res.status(401).send('Não autorizado');
+      }
+  }
   app.use(express.static(path.join(__dirname, 'public')));
 
   // Rota principal
