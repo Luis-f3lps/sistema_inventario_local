@@ -105,7 +105,7 @@ initializeDatabase().then(conn => {
   
       const [rows] = await connection.execute('SELECT * FROM usuario WHERE email = ?', [email]);
       
-      console.log('Usuário encontrado:', rows); // Adicione este log
+      console.log('Usuário encontrado:', rows); 
   
       if (rows.length === 0 || senha !== rows[0].senha) {
         console.error('Credenciais inválidas');
@@ -164,7 +164,7 @@ initializeDatabase().then(conn => {
   app.get('/api/usuario-logado', (req, res) => {
     if (req.session.user) {
         res.json({
-            id_usuario: req.session.user.id_usuario,
+            email: req.session.user.email,
             nome: req.session.user.nome,
             tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
         });
@@ -210,43 +210,47 @@ app.use('/protected/*', disableCache);
     const { nome_usuario, email, senha, tipo_usuario } = req.body;
   
     if (!nome_usuario || !email || !senha || !tipo_usuario) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+    }
+  
+    // Verificar se a senha tem mais de 12 caracteres
+    if (senha.length > 12) {
+        return res.status(400).json({ error: 'A senha deve ter no máximo 12 caracteres' });
     }
   
     try {
-      // Verificar se o nome de usuário já existe
-      const [existingUserByName] = await connection.execute(
-        'SELECT id_usuario FROM usuario WHERE nome_usuario = ?',
-        [nome_usuario]
-      );
+        // Verificar se o nome de usuário já existe
+        const [existingUserByName] = await connection.execute(
+            'SELECT email FROM usuario WHERE nome_usuario = ?',
+            [nome_usuario]
+        );
   
-      if (existingUserByName.length > 0) {
-        return res.status(400).json({ error: 'Nome de usuário já está em uso' });
-      }
+        if (existingUserByName.length > 0) {
+            return res.status(400).json({ error: 'Nome de usuário já está em uso' });
+        }
   
-      // Verificar se o email já existe
-      const [existingUserByEmail] = await connection.execute(
-        'SELECT id_usuario FROM usuario WHERE email = ?',
-        [email]
-      );
+        // Verificar se o email já existe
+        const [existingUserByEmail] = await connection.execute(
+            'SELECT email FROM usuario WHERE email = ?',
+            [email]
+        );
   
-      if (existingUserByEmail.length > 0) {
-        return res.status(400).json({ error: 'Email já está em uso' });
-      }
+        if (existingUserByEmail.length > 0) {
+            return res.status(400).json({ error: 'Email já está em uso' });
+        }
   
-      // Inserir o novo usuário
-      await connection.execute(
-        'INSERT INTO usuario (nome_usuario, email, senha, tipo_usuario) VALUES (?, ?, ?, ?)',
-        [nome_usuario, email, senha, tipo_usuario]
-      );
+        // Inserir o novo usuário
+        await connection.execute(
+            'INSERT INTO usuario (nome_usuario, email, senha, tipo_usuario) VALUES (?, ?, ?, ?)',
+            [nome_usuario, email, senha, tipo_usuario]
+        );
   
-      res.status(201).json({ message: 'Usuário adicionado com sucesso' });
+        res.status(201).json({ message: 'Usuário adicionado com sucesso' });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Erro no servidor' });
+        console.error(error);
+        res.status(500).json({ error: 'Erro no servidor' });
     }
-  });
-  
+});  
 
   app.delete('/api/usuarios/:email', Autenticado, async (req, res) => {
     const { email } = req.params;
@@ -422,7 +426,7 @@ app.get('/api/lab', Autenticado, async (req, res) => {
         return res.status(400).json({ error: 'Sigla já usada.' });
       }
   
-      // Se a sigla não existir, prossegue com a inserção
+      // Se a sigla não existir, 
       const [result] = await connection.execute(
         'INSERT INTO estoque (sigla, concentracao, densidade, nome_produto, tipo_unidade_produto, ncm, quantidade) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [sigla, concentracao, densidade, nome_produto, tipo_unidade_produto, ncm, quantidade]
@@ -570,103 +574,98 @@ app.get('/generate-pdf-estoque', async (req, res) => {
 });
 
 
-
 app.get('/generate-pdf-entradatipo2', async (req, res) => {
-    const { start_date, end_date } = req.query;
-    let sqlQuery = `
-      SELECT 
-          re.id_entrada, 
-          re.data_entrada, 
-          e.nome_produto, 
-          re.quantidade 
-      FROM 
-          registro_entrada re
-      JOIN 
-          estoque e ON re.id_estoque = e.id_estoque
-    `;
+  const { start_date, end_date } = req.query;
+  let sqlQuery = `
+    SELECT 
+        re.data_entrada, 
+        e.nome_produto, 
+        re.quantidade 
+    FROM 
+        registro_entrada re
+    JOIN 
+        estoque e ON re.id_estoque = e.id_estoque
+  `;
 
-    const queryParams = [];
-    if (start_date && end_date) {
-        sqlQuery += ' WHERE re.data_entrada BETWEEN ? AND ?';
-        queryParams.push(start_date, end_date);
-    }
+  const queryParams = [];
+  if (start_date && end_date) {
+      sqlQuery += ' WHERE re.data_entrada BETWEEN ? AND ?';
+      queryParams.push(start_date, end_date);
+  }
 
-    sqlQuery += ' ORDER BY re.data_entrada DESC';
+  sqlQuery += ' ORDER BY re.data_entrada DESC';
 
-    try {
-        const [registraEntrada] = await connection.execute(sqlQuery, queryParams);
+  try {
+      const [registraEntrada] = await connection.execute(sqlQuery, queryParams);
 
-        const doc = new PDFDocument({ margin: 50 });
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        const formattedTime = today.toTimeString().split(' ')[0];
-        const fileName = `Relatorio_Entrada.pdf`;
+      const doc = new PDFDocument({ margin: 50 });
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0];
+      const formattedTime = today.toTimeString().split(' ')[0];
+      const fileName = `Relatorio_Entrada.pdf`;
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
 
-        doc.pipe(res);
+      doc.pipe(res);
 
-        // Adiciona logo
-        const logoPath = path.join(__dirname, '../src/public/images/logoRelatorio.jpg');
-        if (fs.existsSync(logoPath)) {
-            doc.image(logoPath, 50, 45, { width: 100 });
-        }
+      // Adiciona logo
+      const logoPath = path.join(__dirname, '../src/public/images/logoRelatorio.jpg');
+      if (fs.existsSync(logoPath)) {
+          doc.image(logoPath, 50, 45, { width: 100 });
+      }
 
-        // Título
-        doc.fontSize(16).text('Relatório de Entrada', 200, 50, { align: 'center' });
-        doc.fontSize(12).text(`Data: ${formattedDate.split('-').reverse().join('/')}`, { align: 'center' });
-        doc.text(`Hora: ${formattedTime}`, { align: 'center' });
-        doc.moveDown(2);
+      // Título
+      doc.fontSize(16).text('Relatório de Entrada', 200, 50, { align: 'center' });
+      doc.fontSize(12).text(`Data: ${formattedDate.split('-').reverse().join('/')}`, { align: 'center' });
+      doc.text(`Hora: ${formattedTime}`, { align: 'center' });
+      doc.moveDown(2);
 
-        // Configuração da tabela
-        const tableTop = 150;
-        const itemHeight = 20;
-        const columnWidths = [80, 100, 200, 100];
-        const pageHeight = doc.page.height - 50; // Altura da página menos margens
-        let yPosition = tableTop;
+      // Configuração da tabela
+      const tableTop = 150;
+      const itemHeight = 20;
+      const columnWidths = [150, 200, 100]; // Ajuste para 3 colunas
+      const pageHeight = doc.page.height - 50; // Altura da página menos margens
+      let yPosition = tableTop;
 
-        // Função para desenhar os cabeçalhos da tabela
-        const drawTableHeaders = () => {
-            doc.fontSize(10).text('ID Entrada', 50, yPosition);
-            doc.text('Data Entrada', 50 + columnWidths[0], yPosition);
-            doc.text('Nome Produto', 50 + columnWidths[0] + columnWidths[1], yPosition);
-            doc.text('Quantidade', 50 + columnWidths[0] + columnWidths[1] + columnWidths[2], yPosition);
-            yPosition += itemHeight;
-        };
+      // Função para desenhar os cabeçalhos da tabela
+      const drawTableHeaders = () => {
+          doc.fontSize(10).text('Data Entrada', 50, yPosition);
+          doc.text('Nome Produto', 50 + columnWidths[0], yPosition);
+          doc.text('Quantidade', 50 + columnWidths[0] + columnWidths[1], yPosition);
+          yPosition += itemHeight;
+      };
 
-        // Função para desenhar uma linha da tabela
-        const drawTableRow = (item) => {
-            if (yPosition + itemHeight > pageHeight) {
-                doc.addPage();
-                yPosition = 50; // Reposiciona o Y para o topo da nova página
-                drawTableHeaders(); // Redesenha os cabeçalhos da tabela na nova página
-            }
+      // Função para desenhar uma linha da tabela
+      const drawTableRow = (item) => {
+          if (yPosition + itemHeight > pageHeight) {
+              doc.addPage();
+              yPosition = 50; // Reposiciona o Y para o topo da nova página
+              drawTableHeaders(); // Redesenha os cabeçalhos da tabela na nova página
+          }
 
-            doc.text(item.id_entrada, 50, yPosition, { width: columnWidths[0] });
+          const formattedDataEntrada = new Date(item.data_entrada).toLocaleDateString('pt-BR');
+          doc.text(formattedDataEntrada, 50, yPosition, { width: columnWidths[0] });
 
-            const formattedDataEntrada = new Date(item.data_entrada).toLocaleDateString('pt-BR');
-            doc.text(formattedDataEntrada, 50 + columnWidths[0], yPosition, { width: columnWidths[1] });
+          doc.text(item.nome_produto, 50 + columnWidths[0], yPosition, { width: columnWidths[1] });
+          doc.text(item.quantidade, 50 + columnWidths[0] + columnWidths[1], yPosition, { width: columnWidths[2] });
 
-            doc.text(item.nome_produto, 50 + columnWidths[0] + columnWidths[1], yPosition, { width: columnWidths[2] });
-            doc.text(item.quantidade, 50 + columnWidths[0] + columnWidths[1] + columnWidths[2], yPosition, { width: columnWidths[3] });
+          yPosition += itemHeight;
+      };
 
-            yPosition += itemHeight;
-        };
+      // Desenha os cabeçalhos inicialmente
+      drawTableHeaders();
 
-        // Desenha os cabeçalhos inicialmente
-        drawTableHeaders();
+      // Desenha as linhas
+      registraEntrada.forEach(item => {
+          drawTableRow(item);
+      });
 
-        // Desenha as linhas
-        registraEntrada.forEach(item => {
-            drawTableRow(item);
-        });
-
-        doc.end();
-    } catch (error) {
-        console.error('Erro ao gerar PDF:', error);
-        res.status(500).json({ error: 'Erro ao gerar PDF' });
-    }
+      doc.end();
+  } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      res.status(500).json({ error: 'Erro ao gerar PDF' });
+  }
 });
 
 
