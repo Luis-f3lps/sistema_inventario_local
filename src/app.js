@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
 import session from 'express-session';
+import MySQLStore from 'express-mysql-session';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 
@@ -13,22 +14,47 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
 const port = process.env.PORT || 3001;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Configuração de conexão com o banco de dados MySQL para sessões
+const dbOptions = {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
+};
 
+// Criar o armazenamento de sessão no MySQL
+const sessionStore = new MySQLStore(dbOptions);
+
+// Middleware de sessão usando o MySQL como armazenamento
 app.use(session({
+  key: 'session_cookie_name',
   secret: process.env.SESSION_SECRET || 'seuSegredo',
+  store: sessionStore, // Usa o MySQL para armazenar sessões
   resave: false,
   saveUninitialized: true,
   cookie: { 
-    secure: false,
-    maxAge: 8 * 60 * 60 * 1000,
+    secure: process.env.NODE_ENV === 'production', // Define como true em produção
+    maxAge: 8 * 60 * 60 * 1000 // 8 horas
   }
 }));
 
+// Middleware para análise do corpo da solicitação
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Função de autenticação
+function Autenticado(req, res, next) {
+  if (req.session.user) {
+    return next();
+  } else {
+    res.redirect('/');
+  }
+}
+
+// Conectar ao banco de dados MySQL
 async function initializeDatabase() {
   try {
     const connection = await mysql.createConnection({
@@ -48,36 +74,18 @@ async function initializeDatabase() {
   }
 }
 
+// Iniciar o servidor após conectar ao banco de dados
 initializeDatabase().then(() => {
-  const PORT = process.env.PORT || 3001;
-  app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
   });
 });
 
-// Middleware para análise do corpo da solicitação
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Configurar middleware de sessão
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'seuSegredo',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { 
-    secure: false, // Defina como false para desenvolvimento local
-    maxAge: 8 * 60 * 60 * 1000, // 8 horas
-  }
-}));
-
-// Função de autenticação
-function Autenticado(req, res, next) {
-  if (req.session.user) {
-    return next();
-  } else {
-    res.redirect('/');
-  }
-}
+// Rotas protegidas
+app.get('/Relatorio', Autenticado, (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'relatorio.html');
+  res.sendFile(filePath);
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -121,35 +129,13 @@ app.use(express.static(path.join(__dirname, 'public')));
     }
   });
   
-    // Rotas protegidas
-    function authenticate(req, res, next) {
-      if (req.session && req.session.userId) {
-          next();
-      } else {
-          res.status(401).send('Não autorizado');
-      }
-  }
+
   
   // Rota protegida
   app.get('/protected-route', authenticate, (req, res) => {
       res.send('Conteúdo protegido');
   });
 
-app.get('/Relatorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'relatorio.html');
-  console.log('Caminho absoluto para Relatorio.html:', filePath);
-
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
-      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
-    } else {
-      console.log('Arquivo Relatorio.html enviado com sucesso.');
-    }
-  });
-});
-
-  
     app.get('/Usuarios', Autenticado, (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
     });
