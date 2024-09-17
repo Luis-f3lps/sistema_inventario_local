@@ -909,7 +909,7 @@ app.get('/generate-pdf-consumo', async (req, res) => {
 
 
   /* --------------tabela relatorio------------------*/
-app.get('/api/consumos', Autenticado, async (req, res) => {
+  app.get('/api/consumos', Autenticado, async (req, res) => {
     try {
         const { startDate, endDate, laboratorio } = req.query;
 
@@ -954,6 +954,8 @@ app.get('/api/consumos', Autenticado, async (req, res) => {
     } catch (error) {
         console.error('Erro ao buscar consumos:', error);
         res.status(500).json({ error: 'Erro ao buscar consumos' });
+    } finally {
+        await connection.release(); // Se estiver usando pool
     }
 });
 
@@ -1072,6 +1074,7 @@ app.get('/api/estoquePag', Autenticado, async (req, res) => {
 app.get('/api/tabelaregistraentradaInico', Autenticado, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
+
     let query = `
       SELECT 
         r.id_entrada, 
@@ -1089,7 +1092,7 @@ app.get('/api/tabelaregistraentradaInico', Autenticado, async (req, res) => {
       params.push(startDate, endDate);
     }
 
-    query += ' ORDER BY r.data_entrada DESC, r.data_entrada ASC';
+    query += ' ORDER BY r.data_entrada DESC'; // Ordenação simplificada
 
     const [rows] = await connection.execute(query, params);
     res.json(rows);
@@ -1098,6 +1101,7 @@ app.get('/api/tabelaregistraentradaInico', Autenticado, async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar registros de entrada' });
   }
 });
+
 
 
 app.get('/api/tabelaregistraentrada', Autenticado, async (req, res) => {
@@ -1130,7 +1134,7 @@ app.get('/api/tabelaregistraentrada', Autenticado, async (req, res) => {
 
     const [rows] = await connection.execute(query, params);
 
-    const [countResult] = await connection.query(`
+    const [countResult] = await connection.execute(`
       SELECT COUNT(*) as total 
       FROM registro_entrada r 
       JOIN estoque e ON r.id_estoque = e.id_estoque
@@ -1151,6 +1155,7 @@ app.get('/api/tabelaregistraentrada', Autenticado, async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar registros de entrada' });
   }
 });
+
 
 
 app.get('/api/tabelaregistraConsumo', Autenticado, async (req, res) => {
