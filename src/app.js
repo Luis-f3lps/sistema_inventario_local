@@ -1,13 +1,13 @@
+import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
-import fs from 'fs';
-const express = require('express');
-const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
+import session from 'express-session';
+import MySQLStore from 'express-mysql-session';
 
-dotenv.config(); // Carrega as variáveis de ambiente
+// Carregar as variáveis de ambiente
+dotenv.config(); 
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -16,27 +16,23 @@ const __dirname = path.dirname(__filename);
 const port = process.env.PORT || 3001;
 
 // Configuração de conexão com o banco de dados MySQL para sessões
-const dbOptions = {
+const sessionStore = new MySQLStore({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME
-};
-
-// Criar o armazenamento de sessão no MySQL
-const sessionStore = new MySQLStore(dbOptions);
+});
 
 // Middleware de sessão usando o MySQL como armazenamento
 app.use(session({
-  key: 'session_cookie_name',
   secret: process.env.SESSION_SECRET || 'seuSegredo',
-  store: sessionStore, // Usa o MySQL para armazenar sessões
   resave: false,
   saveUninitialized: true,
+  store: sessionStore,  // Armazenar as sessões no MySQL
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', // Define como true em produção
-    maxAge: 8 * 60 * 60 * 1000 // 8 horas
+    secure: false, // Defina como true se estiver usando HTTPS
+    maxAge: 8 * 60 * 60 * 1000, // 8 horas
   }
 }));
 
@@ -83,7 +79,14 @@ initializeDatabase().then(() => {
 // Rotas protegidas
 app.get('/Relatorio', Autenticado, (req, res) => {
   const filePath = path.join(__dirname, 'public', 'relatorio.html');
-  res.sendFile(filePath);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
+    } else {
+      console.log('Arquivo Relatorio.html enviado com sucesso.');
+    }
+  });
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
