@@ -1,10 +1,10 @@
-import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
-import session from 'express-session';
 import fs from 'fs';
+const express = require('express');
+const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 
 dotenv.config(); // Carrega as variáveis de ambiente
