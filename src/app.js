@@ -5,13 +5,14 @@ import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
 import session from 'express-session';
 import bodyParser from 'body-parser';
-const fs = require('fs');
+import fs from 'fs';
 
 dotenv.config(); // Carrega as variáveis de ambiente
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 const port = process.env.PORT || 3001;
 
@@ -138,22 +139,16 @@ app.get('/Relatorio', Autenticado, (req, res) => {
   const filePath = path.join(__dirname, 'public', 'relatorio.html');
   console.log('Caminho absoluto para Relatorio.html:', filePath);
 
-  fs.access(filePath, fs.constants.F_OK, (err) => {
+  res.sendFile(filePath, (err) => {
     if (err) {
-      console.error('Arquivo não encontrado:', filePath);
-      return res.status(404).send('Arquivo não encontrado.');
+      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
+    } else {
+      console.log('Arquivo Relatorio.html enviado com sucesso.');
     }
-
-    res.sendFile(filePath, (err) => {
-      if (err) {
-        console.error('Erro ao enviar o arquivo Relatorio.html:', err);
-        res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
-      } else {
-        console.log('Arquivo Relatorio.html enviado com sucesso.');
-      }
-    });
   });
 });
+
   
     app.get('/Usuarios', Autenticado, (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
