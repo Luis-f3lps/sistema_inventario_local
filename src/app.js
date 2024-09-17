@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import mysql from 'mysql2/promise';
 import session from 'express-session';
 import MySQLStore from 'express-mysql-session';
-import bodyParser from 'body-parser';
 import fs from 'fs';
 
 dotenv.config(); // Carrega as variáveis de ambiente
