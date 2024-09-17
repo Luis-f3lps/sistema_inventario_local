@@ -48,6 +48,13 @@ function Autenticado(req, res, next) {
     res.redirect('/');
   }
 }
+function authenticate(req, res, next) {
+  if (req.session && req.session.userId) {
+      next(); // Usuário autenticado, continue para o próximo middleware ou rota
+  } else {
+      res.status(401).send('Não autorizado'); // Usuário não autenticado
+  }
+}
 
 // Conectar ao banco de dados MySQL
 async function initializeDatabase() {
