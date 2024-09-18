@@ -7,7 +7,7 @@ import session from 'express-session';
 import MySQLStore from 'express-mysql-session';
 
 // Carregar as variáveis de ambiente
-dotenv.config(); 
+dotenv.config();
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -49,12 +49,12 @@ function Autenticado(req, res, next) {
   }
 }
 
-// Iniciar o servidor
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// Rota protegida
+app.get('/protected-route', Autenticado, (req, res) => {
+  res.send('Conteúdo protegido');
 });
 
-// Rotas protegidas
+// Rota para relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
   const filePath = path.join(__dirname, 'public', 'relatorio.html');
   res.sendFile(filePath, (err) => {
@@ -109,12 +109,6 @@ app.use(express.static(path.join(__dirname, 'public')));
     }
   });
   
-
-  
-  // Rota protegida
-  app.get('/protected-route', authenticate, (req, res) => {
-      res.send('Conteúdo protegido');
-  });
 
     app.get('/Usuarios', Autenticado, (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
