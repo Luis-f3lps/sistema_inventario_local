@@ -1,4 +1,4 @@
-import express from 'express';
+import express from 'express'; 
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -15,8 +15,17 @@ const __dirname = path.dirname(__filename);
 
 const port = process.env.PORT || 3001;
 
-// Variável global para a conexão com o banco de dados
-let connection;
+// Configuração do pool de conexões MySQL
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  connectionLimit: 10, // Número máximo de conexões no pool
+  waitForConnections: true,
+  queueLimit: 0
+});
 
 // Configuração de conexão com o banco de dados MySQL para sessões
 const sessionStore = new MySQLStore({
@@ -52,28 +61,9 @@ function Autenticado(req, res, next) {
   }
 }
 
-// Conectar ao banco de dados MySQL
-async function initializeDatabase() {
-  try {
-    connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME
-    });
-    console.log("Conectado ao banco de dados MySQL");
-  } catch (error) {
-    console.error("Falha ao conectar ao banco de dados MySQL:", error);
-    throw error;
-  }
-}
-
 // Iniciar o servidor após conectar ao banco de dados
-initializeDatabase().then(() => {
-  app.listen(port, () => {
-    console.log(`Servidor rodando em http://localhost:${port}`);
-  });
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
 });
 
 // Rota para relatório
@@ -108,7 +98,7 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
 
-    const [rows] = await connection.execute('SELECT * FROM usuario WHERE email = ?', [email]);
+    const [rows] = await pool.execute('SELECT * FROM usuario WHERE email = ?', [email]);
 
     if (rows.length === 0 || senha !== rows[0].senha) {
       console.error('Credenciais inválidas');
@@ -142,6 +132,7 @@ app.get('/Produtos', Autenticado, (req, res) => {
 app.get('/Laboratorio', Autenticado, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'Laboratorio.html'));
 });
+
 
 /* --------------usuario------------------*/
 
