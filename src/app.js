@@ -48,39 +48,10 @@ function Autenticado(req, res, next) {
     res.redirect('/');
   }
 }
-function authenticate(req, res, next) {
-  if (req.session && req.session.userId) {
-      next(); // Usuário autenticado, continue para o próximo middleware ou rota
-  } else {
-      res.status(401).send('Não autorizado'); // Usuário não autenticado
-  }
-}
 
-// Conectar ao banco de dados MySQL
-async function initializeDatabase() {
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME
-    });
-
-    console.log("Connected to MySQL database");
-    global.connection = connection;
-
-  } catch (error) {
-    console.error("Failed to connect to MySQL database:", error);
-    throw error;
-  }
-}
-
-// Iniciar o servidor após conectar ao banco de dados
-initializeDatabase().then(() => {
-  app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-  });
+// Iniciar o servidor
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
 
 // Rotas protegidas
