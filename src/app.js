@@ -49,10 +49,6 @@ function Autenticado(req, res, next) {
   }
 }
 
-// Rota protegida
-app.get('/protected-route', Autenticado, (req, res) => {
-  res.send('Conteúdo protegido');
-});
 
 // Rota para relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
@@ -66,6 +62,7 @@ app.get('/Relatorio', Autenticado, (req, res) => {
     }
   });
 });
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 
