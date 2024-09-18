@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import mysql from 'mysql2/promise';
+import mysql from 'mysql2/promise';  // Importar mysql2 para criar conexões
 import session from 'express-session';
 import MySQLStore from 'express-mysql-session';
 
@@ -14,6 +14,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const port = process.env.PORT || 3001;
+
+// Variável global para a conexão com o banco de dados
+let connection;
 
 // Configuração de conexão com o banco de dados MySQL para sessões
 const sessionStore = new MySQLStore({
@@ -49,6 +52,29 @@ function Autenticado(req, res, next) {
   }
 }
 
+// Conectar ao banco de dados MySQL
+async function initializeDatabase() {
+  try {
+    connection = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME
+    });
+    console.log("Conectado ao banco de dados MySQL");
+  } catch (error) {
+    console.error("Falha ao conectar ao banco de dados MySQL:", error);
+    throw error;
+  }
+}
+
+// Iniciar o servidor após conectar ao banco de dados
+initializeDatabase().then(() => {
+  app.listen(port, () => {
+    console.log(`Servidor rodando em http://localhost:${port}`);
+  });
+});
 
 // Rota para relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
@@ -63,75 +89,73 @@ app.get('/Relatorio', Autenticado, (req, res) => {
   });
 });
 
-
+// Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
-  // Rota principal
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
+// Rota principal
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-  /* --------------login------------------*/
+/* --------------login------------------*/
 
-  // Rota de login
-  app.post('/login', async (req, res) => {
-    try {
-      const { email, senha } = req.body;
-  
-      if (!email || !senha) {
-        return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
-      }
-  
-      const [rows] = await connection.execute('SELECT * FROM usuario WHERE email = ?', [email]);
-      
-      console.log('Usuário encontrado:', rows); 
-  
-      if (rows.length === 0 || senha !== rows[0].senha) {
-        console.error('Credenciais inválidas');
-        return res.status(401).json({ error: 'Credenciais inválidas' });
-      }
-  
-      const user = rows[0];
-  
-      req.session.user = {
-        nome: user.nome_usuario,
-        email: user.email,
-        tipo_usuario: user.tipo_usuario
-      };
-  
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      res.status(500).json({ error: 'Erro no servidor' });
+// Rota de login
+app.post('/login', async (req, res) => {
+  try {
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+      return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
-  });
-  
 
-    app.get('/Usuarios', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
-    });
-  
-    app.get('/Produtos', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Produtos.html'));
-    });
-  
-    app.get('/Laboratorio', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Laboratorio.html'));
-    });
+    const [rows] = await connection.execute('SELECT * FROM usuario WHERE email = ?', [email]);
 
-  /* --------------usuario------------------*/
-
-  // Rota para obter o usuário logado
-  app.get('/api/usuario-logado', (req, res) => {
-    if (req.session.user) {
-        res.json({
-            email: req.session.user.email,
-            nome: req.session.user.nome,
-            tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
-        });
-    } else {
-        res.status(401).json({ error: 'Usuário não logado' });
+    if (rows.length === 0 || senha !== rows[0].senha) {
+      console.error('Credenciais inválidas');
+      return res.status(401).json({ error: 'Credenciais inválidas' });
     }
+
+    const user = rows[0];
+
+    req.session.user = {
+      nome: user.nome_usuario,
+      email: user.email,
+      tipo_usuario: user.tipo_usuario
+    };
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao fazer login:', error);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+// Rotas protegidas
+app.get('/Usuarios', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
+});
+
+app.get('/Produtos', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Produtos.html'));
+});
+
+app.get('/Laboratorio', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Laboratorio.html'));
+});
+
+/* --------------usuario------------------*/
+
+// Rota para obter o usuário logado
+app.get('/api/usuario-logado', (req, res) => {
+  if (req.session.user) {
+      res.json({
+          email: req.session.user.email,
+          nome: req.session.user.nome,
+          tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
+      });
+  } else {
+      res.status(401).json({ error: 'Usuário não logado' });
+  }
 });
 
 app.get('/logout', (req, res) => {
@@ -156,16 +180,16 @@ function disableCache(req, res, next) {
 // Aplica o middleware a todas as rotas protegidas
 app.use('/protected/*', disableCache);
 
-  // Rotas para usuários
-  app.get('/api/usuarios', Autenticado, async (req, res) => {
-    try {
-      const [usuarios] = await connection.execute('SELECT nome_usuario, email FROM usuario');
-      res.json(usuarios);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Erro no servidor' });
-    }
-  });
+// Rotas para usuários
+app.get('/api/usuarios', Autenticado, async (req, res) => {
+  try {
+    const [usuarios] = await connection.execute('SELECT nome_usuario, email FROM usuario');
+    res.json(usuarios);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
 
   app.post('/api/usuarios', Autenticado, async (req, res) => {
     const { nome_usuario, email, senha, tipo_usuario } = req.body;
