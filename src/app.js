@@ -66,18 +66,6 @@ app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
 
-// Rota para relatório
-app.get('/Relatorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'relatorio.html');
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
-      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
-    } else {
-      console.log('Arquivo Relatorio.html enviado com sucesso.');
-    }
-  });
-});
 
 // Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -120,19 +108,83 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Rotas protegidas
+// Rota para Movimentação de Estoque
+app.get('/MovimentacaoEstoque', Autenticado, (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'MovimentacaoEstoque.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo MovimentacaoEstoque.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo MovimentacaoEstoque.html.');
+    } else {
+      console.log('Arquivo MovimentacaoEstoque.html enviado com sucesso.');
+    }
+  });
+});
+
+// Rota para Inventário
+app.get('/Inventario', Autenticado, (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'Inventario.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Inventario.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Inventario.html.');
+    } else {
+      console.log('Arquivo Inventario.html enviado com sucesso.');
+    }
+  });
+});
+
+// Rota para Relatório
+app.get('/Relatorio', Autenticado, (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'Relatorio.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
+    } else {
+      console.log('Arquivo Relatorio.html enviado com sucesso.');
+    }
+  });
+});
+
+// Rota para Usuários
 app.get('/Usuarios', Autenticado, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
+  const filePath = path.join(__dirname, 'public', 'Usuarios.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Usuarios.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Usuarios.html.');
+    } else {
+      console.log('Arquivo Usuarios.html enviado com sucesso.');
+    }
+  });
 });
 
-app.get('/Produtos', Autenticado, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'Produtos.html'));
+// Rota para Estoque
+app.get('/Estoques', Autenticado, (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'Estoques.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Estoques.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Estoques.html.');
+    } else {
+      console.log('Arquivo Estoques.html enviado com sucesso.');
+    }
+  });
 });
 
+// Rota para Laboratórios
 app.get('/Laboratorio', Autenticado, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'Laboratorio.html'));
+  const filePath = path.join(__dirname, 'public', 'Laboratorio.html');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Laboratorio.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo Laboratorio.html.');
+    } else {
+      console.log('Arquivo Laboratorio.html enviado com sucesso.');
+    }
+  });
 });
-
 
 /* --------------usuario------------------*/
 
