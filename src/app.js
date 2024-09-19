@@ -110,7 +110,7 @@ app.post('/login', async (req, res) => {
 
 // Rota para Movimentação de Estoque
 app.get('/MovimentacaoEstoque', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'MovimentacaoEstoque.html');
+const filePath = path.join(__dirname, '..', 'public', 'MovimentacaoEstoque.html');
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo MovimentacaoEstoque.html:', err);
@@ -123,7 +123,7 @@ app.get('/MovimentacaoEstoque', Autenticado, (req, res) => {
 
 // Rota para Inventário
 app.get('/Inventario', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'Inventario.html');
+const filePath = path.join(__dirname, '..', 'public', 'Inventario.html');
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo Inventario.html:', err);
@@ -136,7 +136,7 @@ app.get('/Inventario', Autenticado, (req, res) => {
 
 // Rota para Relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'Relatorio.html');
+const filePath = path.join(__dirname, '..', 'public', 'Relatorio.html');
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo Relatorio.html:', err);
@@ -149,7 +149,7 @@ app.get('/Relatorio', Autenticado, (req, res) => {
 
 // Rota para Usuários
 app.get('/Usuarios', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'Usuarios.html');
+const filePath = path.join(__dirname, '..', 'public', 'Usuarios.html');
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo Usuarios.html:', err);
@@ -162,7 +162,7 @@ app.get('/Usuarios', Autenticado, (req, res) => {
 
 // Rota para Estoque
 app.get('/Estoques', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'Estoques.html');
+const filePath = path.join(__dirname, '..', 'public', 'Estoques.html');
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo Estoques.html:', err);
@@ -175,7 +175,7 @@ app.get('/Estoques', Autenticado, (req, res) => {
 
 // Rota para Laboratórios
 app.get('/Laboratorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'Laboratorio.html');
+const filePath = path.join(__dirname, '..', 'public', 'Laboratorio.html');
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo Laboratorio.html:', err);
