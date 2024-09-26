@@ -49,11 +49,20 @@ async function executeQuery(query, params = []) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+// Configurar middleware de sessão
+//app.use(session({
+  //secret: 'seuSegredo',
+  //resave: false,
+  //saveUninitialized: true,
+  //cookie: { 
+    //secure: false, // Altere para true em produção com HTTPS
+    //maxAge: 8 * 60 * 60 * 1000, // 8 horas 
+  //}
+//}));
 app.use(session({
   secret: 'seuSegredo',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
   proxy: true,
   secureProxy: true,
   cookie: {
