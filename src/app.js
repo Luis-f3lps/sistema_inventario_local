@@ -7,6 +7,13 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import session from 'express-session'; 
 import bcrypt from 'bcrypt'; 
+import cors from 'cors';
+
+app.use(cors({
+  origin: 'https://sistema-inventario-local.vercel.app', // Substitua pelo seu domínio
+  credentials: true // Permitir cookies e credenciais
+}));
+app.set('trust proxy', true);
 
 // Definindo __filename e __dirname
 const __filename = fileURLToPath(import.meta.url);
