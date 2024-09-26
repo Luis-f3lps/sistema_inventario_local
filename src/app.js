@@ -9,25 +9,22 @@ import session from 'express-session';
 import bcrypt from 'bcrypt'; 
 import cors from 'cors';
 
+dotenv.config(); // Carregar variáveis de ambiente
+
+const app = express();
+
+// Configurar CORS
 app.use(cors({
   origin: 'https://sistema-inventario-local.vercel.app', // Substitua pelo seu domínio
   credentials: true // Permitir cookies e credenciais
 }));
+
 app.set('trust proxy', true);
 
 // Definindo __filename e __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Carregando variáveis de ambiente do arquivo variaveis.env
-console.log({
-  DB_HOST: process.env.DB_HOST,
-  DB_USER: process.env.DB_USER,
-  DB_PASSWORD: process.env.DB_PASSWORD,
-  DB_NAME: process.env.DB_NAME,
-});
-
-const app = express();
 // Testar a conexão ao banco de dados
 (async () => {
   try {
@@ -39,20 +36,7 @@ const app = express();
   }
 })();
 
-async function executeQuery(query, params = []) {
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    const [rows] = await connection.execute(query, params);
-    return rows;
-  } catch (error) {
-    console.error('Erro ao executar a consulta:', error);
-    throw error; // Re-throw para que o erro possa ser tratado na rota
-  } finally {
-    if (connection) connection.release(); // Liberar a conexão de volta ao pool
-  }
-}
-
+// Middleware para manipulação de requisições
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -62,11 +46,10 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie: { 
-    secure: true, // Altere para true em produção com HTTPS
+    secure: process.env.NODE_ENV === 'production', // true em produção
     maxAge: 8 * 60 * 60 * 1000, // 8 horas 
   }
 }));
-
 
 // Configurar middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -75,8 +58,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 // Rota protegida para o Relatório
-// Rota para o Relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
   const filePath = path.join(__dirname, 'public', 'relatorio.html');
   console.log('Caminho absoluto para Relatorio.html:', filePath);
@@ -87,6 +70,7 @@ app.get('/Relatorio', Autenticado, (req, res) => {
     }
   });
 });
+
 // Rota de login
 app.post('/login', async (req, res) => {
   try {
@@ -96,7 +80,6 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
 
-    // Usando a função executeQuery para fazer a consulta
     const rows = await executeQuery('SELECT * FROM usuario WHERE email = ?', [email]);
 
     if (rows.length === 0) {
@@ -104,8 +87,6 @@ app.post('/login', async (req, res) => {
     }
 
     const user = rows[0];
-
-    // Verificar se a senha fornecida corresponde ao hash armazenado
     const match = await bcrypt.compare(senha, user.senha);
     if (!match) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
@@ -117,17 +98,13 @@ app.post('/login', async (req, res) => {
       tipo_usuario: user.tipo_usuario
     };
 
+    console.log('Sessão criada:', req.session.user); // Log da sessão
+
     res.json({ success: true });
   } catch (error) {
     console.error('Erro ao fazer login:', error);
     res.status(500).json({ error: 'Erro no servidor' });
   }
-});
-
-// Iniciar o servidor
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando no endereço http://localhost:${PORT}`);
 });
 
 // Middleware de autenticação
@@ -138,39 +115,42 @@ function Autenticado(req, res, next) {
     res.redirect('/');
   }
 }
-    app.get('/Usuarios', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
-    });
-      app.get('/Produto', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Produto.html'));
-    });
-    
-    app.get('/MovimentacaoProduto', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'MovimentacaoProduto.html'));
-    });
 
-    app.get('/EditarMovimentacoes', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'EditarMovimentacoes.html'));
-    });
+// Resto das rotas
+app.get('/Usuarios', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
+});
 
-    app.get('/Inventario', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Inventario.html'));
-    });
-  
-    app.get('/Laboratorio', Autenticado, (req, res) => {
-      res.sendFile(path.join(__dirname, 'public', 'Laboratorio.html'));
-    });
+app.get('/Produto', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Produto.html'));
+});
 
-  // Rota para obter o usuário logado
+app.get('/MovimentacaoProduto', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'MovimentacaoProduto.html'));
+});
+
+app.get('/EditarMovimentacoes', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'EditarMovimentacoes.html'));
+});
+
+app.get('/Inventario', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Inventario.html'));
+});
+
+app.get('/Laboratorio', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Laboratorio.html'));
+});
+
+// Rota para obter o usuário logado
 app.get('/api/usuario-logado', (req, res) => {
   if (req.session.user) {
-      res.json({
-          email: req.session.user.email,
-          nome: req.session.user.nome,
-          tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
-      });
+    res.json({
+      email: req.session.user.email,
+      nome: req.session.user.nome,
+      tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
+    });
   } else {
-      res.status(401).json({ error: 'Usuário não logado' });
+    res.status(401).json({ error: 'Usuário não logado' });
   }
 });
 
