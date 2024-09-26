@@ -176,34 +176,35 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-function loadLoggedInUser() {
-    fetch('/api/usuario-logado', {
-      method: 'GET',
-      credentials: 'include' // Inclui cookies de sessão
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Usuário não logado');
-      }
-      return response.json();
-    })
-    .then(data => {
-      const userNameElement = document.getElementById('user-name-text');
-      userNameElement.innerHTML = data.nome;
-      if (data.tipo_usuario === 'admin') {
-        document.querySelector('.admin-menu').style.display = 'block';
-      }
-    })
-    .catch(error => {
-      console.error('Erro ao carregar usuário logado:', error);
-      // Aqui você pode tratar o erro de forma mais amigável,
-      // como redirecionar o usuário para a página de login ou exibir uma mensagem.
-      alert('Você não está logado. Por favor, faça login.');
-      window.location.href = '/'; // Redireciona para a página inicial ou de login
-    });
-  }
-  loadLoggedInUser();
-  
+async function loadLoggedInUser() {
+    try {
+        const response = await fetch('/api/usuario-logado', {
+            method: 'GET',
+            credentials: 'include' // Inclui cookies de sessão
+        });
+        
+        if (!response.ok) {
+            throw new Error('Usuário não logado'); // Lança um erro se a resposta não for OK
+        }
+        
+        const data = await response.json(); // Converte a resposta em JSON
+        const userNameElement = document.getElementById('user-name-text');
+        userNameElement.innerHTML = data.nome; // Atualiza o nome do usuário na interface
+        
+        // Verifica se o tipo de usuário é admin e exibe o menu correspondente
+        if (data.tipo_usuario === 'admin') {
+            document.querySelector('.admin-menu').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar usuário logado:', error);
+        alert('Você não está logado. Por favor, faça login.'); // Alerta ao usuário
+        window.location.href = '/'; // Redireciona para a página inicial ou de login
+    }
+}
+
+// Chama a função para carregar o usuário logado
+loadLoggedInUser();
+
 
 
 document.addEventListener('DOMContentLoaded', function() {

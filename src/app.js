@@ -63,14 +63,13 @@ app.use(session({
   secret: 'seuSegredo',
   resave: false,
   saveUninitialized: true,
-  proxy: true,
-  secureProxy: true,
   cookie: {
-      secure: true,
-      httpOnly: true,
-      maxAge: 5184000000 // 60 days
-      }
+    secure: process.env.NODE_ENV === 'production', // Pode ser true ou false dependendo do ambiente
+    httpOnly: true,
+    maxAge: 8 * 60 * 60 * 1000, // 8 horas
+  }
 }));
+
 
 // Configurar middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -92,15 +91,17 @@ app.get('/Relatorio', Autenticado, (req, res) => {
   });
 });
 // Rota de login
+// Rota de login
 app.post('/login', async (req, res) => {
   try {
     const { email, senha } = req.body;
 
+    // Verifique se o email e a senha foram fornecidos
     if (!email || !senha) {
       return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
 
-    // Usando a função executeQuery para fazer a consulta
+    // Consultar o banco de dados
     const rows = await executeQuery('SELECT * FROM usuario WHERE email = ?', [email]);
 
     if (rows.length === 0) {
@@ -109,12 +110,13 @@ app.post('/login', async (req, res) => {
 
     const user = rows[0];
 
-    // Verificar se a senha fornecida corresponde ao hash armazenado
+    // Verificar a senha
     const match = await bcrypt.compare(senha, user.senha);
     if (!match) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
+    // Criar a sessão
     req.session.user = {
       nome: user.nome_usuario,
       email: user.email,
@@ -127,6 +129,7 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
+
 
 // Iniciar o servidor
 const PORT = process.env.PORT || 3001;
@@ -166,17 +169,19 @@ function Autenticado(req, res, next) {
     });
 
   // Rota para obter o usuário logado
-app.get('/api/usuario-logado', (req, res) => {
-  if (req.session.user) {
+  app.get('/api/usuario-logado', (req, res) => {
+    console.log('Sessão:', req.session); // Verificar o que está na sessão
+    if (req.session.user) {
       res.json({
-          email: req.session.user.email,
-          nome: req.session.user.nome,
-          tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
+        email: req.session.user.email,
+        nome: req.session.user.nome,
+        tipo_usuario: req.session.user.tipo_usuario
       });
-  } else {
+    } else {
       res.status(401).json({ error: 'Usuário não logado' });
-  }
-});
+    }
+  });
+  
 
 // Rota de logout
 app.get('/logout', (req, res) => {
