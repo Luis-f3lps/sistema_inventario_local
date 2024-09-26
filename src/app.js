@@ -70,12 +70,14 @@ function Autenticado(req, res, next) {
 }
 
 
-// Rota protegida para o Relatório
+// Rota para o Relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
-  res.sendFile('Relatorio.html', (err) => {
+  const filePath = path.join(__dirname, 'public', 'relatorio.html');
+  console.log('Caminho absoluto para Relatorio.html:', filePath);
+  res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo Relatorio.html:', err);
-      res.status(500).send('Erro ao enviar o arquivo.');
+      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
     }
   });
 });
