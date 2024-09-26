@@ -13,7 +13,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Carregando variáveis de ambiente do arquivo variaveis.env
-dotenv.config({ path: path.resolve(__dirname, 'variaveis.env') }); // Ajuste o caminho conforme necessário
 console.log({
   DB_HOST: process.env.DB_HOST,
   DB_USER: process.env.DB_USER,
