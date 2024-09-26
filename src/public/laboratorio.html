@@ -8,31 +8,40 @@
     <script src="https://kit.fontawesome.com/915b45d802.js" crossorigin="anonymous"></script>
 </head>
 <body>
-
 <div id="header">
+    <nav>
+        <ul id="sidemenu">
+            <img src="images/logomenu.png" class="logo">
+            </br>
+            <li>
+                <span id="user-name" style="border-bottom: 1px solid; display: flex; align-items: center;">
+                    <i class="fas fa-user"></i>
+                    <span id="user-name-text"></span>
+                </span>
+            </li>
+            </br>
+            <li><a href="/MovimentacaoProduto"><i class="fas fa-exchange-alt"></i> Movimentação</a></li>
+            <li><a href="/Inventario"><i class="fas fa-boxes"></i> Inventário</a></li>
+            <li><a href="/Relatorio"><i class="fas fa-chart-line"></i> Relatórios</a></li>
+            <!-- HTML para o menu de administração -->
+            <li class="submenu admin-menu" style="display: none;">
+                <a href="#"><i class="fas fa-user-shield"></i> Administração <i class="fas fa-chevron-down"></i></a>
+                <ul class="submenu-items">
+                    <li><a href="/Usuarios"><i class="fas fa-users"></i> Usuários</a></li>
+                    <li><a href="/Produto"><i class="fas fa-tags"></i> Produtos</a></li>
+                    <li><a href="/Laboratorio"><i class="fas fa-flask"></i> Laboratórios</a></li>
+                </ul>
+            </li>
+            </br>
+            <li class="logout">
+                <a href="index.html" style="border-top: 1px solid;">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </a>
+                <i class="fa-solid fa-circle-xmark" onclick="clossmenu()"></i>
+        </ul>
+        <i class="fa-solid fa-bars" onclick="openmenu()" aria-hidden="true" style="margin: 30px; "></i>
+    </nav>
     <div class="container">
-        <nav>
-            <ul id="sidemenu">
-                <img src="images/logomenu.png" class="logo">
-                </br>
-                <li><span id="user-name" style="border-bottom: 1px solid; display: flex; align-items: center;"><i class="fas fa-user"></i> <span id="user-name-text"></span></span></li>
-                <li><a href="/MovimentacaoEstoque"><i class="fas fa-exchange-alt"></i> Movimentação</a></li>
-                <li><a href="/Inventario"><i class="fas fa-boxes"></i> Inventário</a></li>
-                <li><a href="/Relatorio"><i class="fas fa-chart-line"></i> Relatórios</a></li>
-                <!-- HTML para o menu de administração -->
-                <li class="submenu admin-menu" style="display: none;">
-                    <a href="#"><i class="fas fa-user-shield"></i> Administração <i class="fas fa-chevron-down"></i></a>
-                    <ul class="submenu-items">
-                        <li><a href="/Usuarios"><i class="fas fa-users"></i> Usuários</a></li>
-                        <li><a href="/Estoques"><i class="fas fa-tags"></i> Estoque</a></li>
-                        <li><a href="/Laboratorio"><i class="fas fa-flask"></i> Laboratórios</a></li>
-                    </ul>
-                </li>
-                
-                </br>
-                <li class="logout"><a href="/logout" style="border-top: 1px solid;"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
-            </ul>
-        </nav>
         <div id="about"> 
             <div class="container">
                 <div class="row">
@@ -100,8 +109,7 @@
                                         </select>
                                     </div>
                                     <button type="submit33">Atualizar Responsável</button>
-                                </form>
-                                
+                                </form>                                
                             </div>
                         </div>
                         <div class="tab-contents" id="remover">
@@ -126,6 +134,5 @@
     </div>    
 </div>
 <script src="js/laboratorio.js"></script>
-
 </body>
 </html>

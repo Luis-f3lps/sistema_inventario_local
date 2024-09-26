@@ -7,7 +7,6 @@
 html{
     scroll-behavior: smooth;
 }
-/* --------------Home------------------*/
 #header{
     width: 100%;
     height: 100vh;
@@ -24,16 +23,16 @@ html{
 #sidemenu {
     position: fixed;
     left: 0;
-    top: 50%; /* Isso posiciona o menu no meio da altura da página */
-    transform: translateY(-50%); /* Isso centraliza verticalmente o menu */
+    top: 50%; 
+    transform: translateY(-50%); 
     padding: 0;
     margin: 0;
-    z-index: 1; /* Definindo um z-index menor */
+    z-index: 1; 
 }
 
 #sidemenu li {
     display: block;
-    margin-bottom: 10px; /* Espaçamento entre os itens do menu */
+    margin-bottom: 10px; 
 }
 
 #sidemenu li a {
@@ -53,7 +52,7 @@ html{
 }
 #sidemenu li {
     display: block;
-    margin-bottom: 10px; /* Espaçamento entre os itens do menu */
+    margin-bottom: 10px; 
 }
 
 #sidemenu li span {
@@ -89,9 +88,7 @@ html{
 .rotate {
     transform: rotate(180deg);
 }
-/* Adicionando um z-index maior para o conteúdo principal */
 .container {
-    position: relative;
     z-index: 2;
 }
 .form-container {
@@ -104,7 +101,7 @@ html{
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-#delete-estoque-form {
+#delete-produto-form {
     max-width: 400px;
     margin: 0 auto;
     margin-top: 60px;
@@ -208,37 +205,10 @@ button {
     cursor: pointer;
 }
 button:hover {
-    background-color: #094412; /* Altera a cor do botão ao passar o mouse */
+    background-color: #094412; 
 }
 
-/* --------------Sobre------------------*/
-#about{
-    padding-top: 50px;
-    padding-bottom: 20px;
-    color: black;
-}
-.row{
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-.about-col-1{
-    flex-basis: 35%;
-}
-.about-col-1 img{
-    width: 100%;
-    border-radius: 15px;
-}
-.about-col-2{
-    flex-basis: 60%;
-    text-align: justify;
-}
-.sub-title{
-    font-size: 40px;
-    margin-bottom: 20px;
-    font-weight: 600;
-    color: black;
-}
+
 .tab-titles{
     display: flex;
     margin: 20px 0 40px;    
@@ -283,13 +253,13 @@ select {
     font-size: 16px;
     border: 2px solid #4CAF50;
     border-radius: 5px;
-    appearance: none; /* Remove default arrow icon */
+    appearance: none; 
     background-color: white;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234CAF50' width='24px' height='24px'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
     background-position: right 10px top 50%;
     background-repeat: no-repeat;
     background-size: 20px;
-    padding-right: 30px; /* Space for arrow icon */
+    padding-right: 30px; 
     width: 300px;
     transition: border-color 0.3s ease;
 }
@@ -322,7 +292,6 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
-/* --------------Css para telefone--------------- */
 nav .fa-solid{
     display: none;
 }
@@ -375,14 +344,21 @@ nav .fa-solid{
         display: block;
         font-size: 25px;
     }
+    nav ul .fa-solid {
+        position: absolute;
+        top: 25px;
+        left: 200px;
+        cursor: pointer;
+        color: #094412;
+    }
     nav ul{
         background: #094412;
         top: 0;
-        left: 0; /* Alteração para o lado esquerdo */
+        left: 0; 
         height: 100vh;
         padding-top: 50px;
         z-index: 2;
-        transition: left 0.5s; /* Mudança de right para left */
+        transition: left 0.5s; 
     }
     ul li{
         display: block;
@@ -390,12 +366,6 @@ nav .fa-solid{
     }
     nav ul li a{
         color: #ffffff;
-    }
-    nav ul .fa-solid{
-        position: absolute;
-        top: 25px;
-        left: 25px;
-        cursor: pointer;
     }
     .sub-title{
         margin-top: 10px;
@@ -430,3 +400,95 @@ nav .fa-solid{
     .services-list div a{
         color: #ffffff;
     }
+    @media only screen and (min-width: 901px) and (min-height: 1601px) {
+
+        .container {
+            padding: 1px 1%;
+                position: static;
+                z-index: 2;
+        }
+        
+        #sidemenu {
+            left: -800px;
+
+            padding: 0;
+            margin: 0;
+            z-index: 1;
+        }
+        nav ul{
+            background: #094412;
+            top: 0;
+            right: -600px;
+            width: 600px;
+            height: 100vh;
+            padding-top: 50px;
+            z-index: 2;
+            transition: right 0.5s;
+        }
+        nav ul li{
+            display: block;
+            margin: 45px;
+        }
+        nav ul li a{
+            color: #ffffff;
+            font-size: 52px;;
+        }
+        nav ul .fa-solid {
+            position: absolute;
+            top: 100px;
+            left: 500px;
+            cursor: pointer;
+            color: #ffffff;
+        }
+        i.fa-circle-xmark {
+            color: #ff4d4d; /* Cor do ícone (vermelho) */
+            cursor: pointer; /* Cursor de ponteiro ao passar o mouse */
+            transition: transform 0.3s ease, color 0.3s ease; /* Transição suave para animações */
+        }
+
+        i.fa-circle-xmark:hover {
+            color: #e60000; /* Cor mais escura ao passar o mouse */
+            transform: scale(1.2); /* Aumenta o ícone em 20% ao passar o mouse */
+        }
+        img {
+            margin-top: 90px;
+        }
+
+        nav .fa-solid {
+            position: fixed;
+            display: block;
+            font-size: 60px;
+            padding: 10px;
+        }
+        #sidemenu .submenu-items li a {
+            padding: 10px;
+            font-size: 46px;
+            color: #ffffff;
+        }
+        #sidemenu li a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #ffffff;
+            transition: background-color 0.3s;
+        }
+        #sidemenu .submenu-items {
+            display: none;
+            list-style-type: none;
+            padding-left: 20px;
+            margin-top: -40px;
+            margin-left: -50px;
+        }
+        #sidemenu li span {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #ffffff;
+            transition: background-color 0.3s;
+            font-size: 40px;
+            align-items: center;
+        }
+        nav{
+            margin-top: 40px;
+        }
+        }

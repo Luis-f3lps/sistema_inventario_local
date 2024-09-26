@@ -1,3 +1,14 @@
+
+var sidemenu = document.getElementById("sidemenu");
+function openmenu(){
+    sidemenu.style.left = "0px";
+}
+function clossmenu(){
+    sidemenu.style.left = "-800px";
+}
+
+
+
 // Autenticado
 function Autenticado() {
     return fetch('/api/check-auth', {
@@ -42,31 +53,53 @@ function opentab(tabname) {
     event.currentTarget.classList.add("active-link");
 }
 
-// loadUsers
+// Load Users
 function loadUsers() {
     fetch('/api/usuarios')
         .then(response => response.json())
         .then(data => {
             const tbody = document.getElementById('usuarios-tbody');
-            const select = document.getElementById('usuarios-select');
-            
+            const selectRemove = document.getElementById('usuarios-select');
+            const selectActivate = document.getElementById('usuarios-select-ativar');
+
+            // Limpar o tbody antes de adicionar novos usuários
+            tbody.innerHTML = '';
+            selectRemove.innerHTML = ''; // Limpar também o select de remoção
+            selectActivate.innerHTML = ''; // Limpar também o select de ativação
+
             data.forEach(usuario => {
+                // Adicionar à tabela
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${usuario.nome_usuario}</td>
                     <td>${usuario.email}</td>
+                    <td>${usuario.tipo_usuario}</td>
+                    <td>${usuario.status}</td>
                 `;
                 tbody.appendChild(tr);
+                if (usuario.status === 'ativado') {
+                // Adicionar ao select de desativação
+                const optionRemove = document.createElement('option');
+                optionRemove.value = usuario.email;
+                optionRemove.textContent = `${usuario.nome_usuario} (${usuario.status})`;
+                selectRemove.appendChild(optionRemove);
+            }
 
-                const option = document.createElement('option');
-                option.value = usuario.email;
-                option.textContent = usuario.nome_usuario;
-                select.appendChild(option);
+                // Adicionar ao select de ativação, se o usuário estiver desativado
+                if (usuario.status === 'desativado') {
+                    const optionActivate = document.createElement('option');
+                    optionActivate.value = usuario.email;
+                    optionActivate.textContent = `${usuario.nome_usuario} (${usuario.status})`;
+                    selectActivate.appendChild(optionActivate);
+                }
             });
         })
         .catch(error => console.error('Erro ao carregar usuários:', error));
 }
 
+
+// Chame a função para carregar os usuários
+loadUsers();
 
 // Pegar o nome do usuário logado
 function loadLoggedInUser() {
@@ -136,14 +169,13 @@ document.getElementById('add-user-form').addEventListener('submit', function(eve
     .catch(error => console.error('Erro ao adicionar usuário:', error));
 });
 
-// Remover usuário
+// Desativar usuário
 document.getElementById('remove-user-form').addEventListener('submit', function(event) {
     event.preventDefault();
-
     const email = document.getElementById('usuarios-select').value;
 
     fetch(`/api/usuarios/${email}`, {
-        method: 'DELETE',
+        method: 'PATCH', // Usar PATCH para desativar
     })
     .then(response => response.json())
     .then(data => {
@@ -151,33 +183,58 @@ document.getElementById('remove-user-form').addEventListener('submit', function(
             alert(data.error);
         } else {
             alert(data.message);
-
-            // Remover o usuário da tabela
-            const rows = document.querySelectorAll(`#usuarios-tbody tr`);
-            rows.forEach(row => {
-                if (row.cells[1].textContent === email) {
-                    row.remove();
-                }
-            });
-
-            // Remover o usuário do select
-            const options = document.querySelectorAll(`#usuarios-select option`);
-            options.forEach(option => {
-                if (option.value === email) {
-                    option.remove();
-                }
-            });
-
-            // Limpar o formulário
-            document.getElementById('remove-user-form').reset();
+            // Recarregar a página para atualizar os dados
+            location.reload();
         }
     })
-    .catch(error => console.error('Erro ao remover usuário:', error));
+    .catch(error => console.error('Erro ao desativar usuário:', error));
 });
+
+// Ativar usuário
+document.getElementById('activate-user-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const email = document.getElementById('usuarios-select-ativar').value;
+
+    fetch(`/api/usuarios/ativar/${email}`, {
+        method: 'PATCH', // Usar PATCH para ativar
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert(data.message);
+            // Recarregar a página 
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Erro ao ativar usuário:', error));
+});
+
+// Função para atualizar o status do usuário na tabela
+function updateUserStatus(email, status) {
+    const rows = document.querySelectorAll(`#usuarios-tbody tr`);
+    rows.forEach(row => {
+        if (row.cells[1].textContent === email) {
+            row.cells[2].textContent = status; // Atualiza o status na tabela
+        }
+    });
+}
+
+// Função para remover uma opção de um select
+function removeOptionFromSelect(email, selectId) {
+    const select = document.getElementById(selectId);
+    const options = select.querySelectorAll('option');
+    options.forEach(option => {
+        if (option.value === email) {
+            option.remove();
+        }
+    });
+}
+
 
 // Inicializar as funções
 document.addEventListener('DOMContentLoaded', function() {
-    loadUsers();
     loadLoggedInUser();
 });
 

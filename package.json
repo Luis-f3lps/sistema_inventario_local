@@ -2,30 +2,26 @@
   "name": "sistema",
   "version": "1.0.0",
   "description": "",
-  "main": "src/app.js",
+  "main": "index.js",
   "type": "module",
-  "engine": {
-    "node": "20.x"
-  },
   "scripts": {
-    "start": "node src/app.js"
+    "dev": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
-    "connect-pg-simple": "^9.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "express-mysql-session": "^2.0.0",
     "express-session": "^1.18.0",
-    "fs": "^0.0.1-security",
-    "mysql2": "^2.3.3",
-    "pdfkit": "^0.15.0",
-    "pg": "^8.12.0"
+    "mysql": "^2.18.1",
+    "mysql2": "^3.11.0",
+    "pdfkit": "^0.15.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.3"

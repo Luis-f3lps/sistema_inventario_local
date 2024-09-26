@@ -7,7 +7,6 @@ function clossmenu(){
     sidemenu.style.left = "-800px";
 }
 
-
 function Autenticado() {
     return fetch('/api/check-auth', {
         method: 'GET',
@@ -33,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
         redirecionarSeNaoAutenticado();
     }
 });
+
+
 
 // Função para abrir abas
 function opentab(tabname) {
@@ -88,27 +89,90 @@ function loadProdutos(page = 1, limit = 20) { // Ajustando o limite padrão
 }
 
 
+
+// Chame a função para carregar os usuários
+loadProdutos();
+
+
 // Função para carregar produtos no select
 function loadProdutosSelect() {
     fetch('/api/produto')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na rede ao buscar produtos: ' + response.statusText);
+            }
+            return response.json();
+        })
         .then(data => {
             const select = document.getElementById('id_produto');
-            select.innerHTML = ''; // Limpa o select antes 
+            select.innerHTML = ''; // Limpa o select antes
+
+            if (!Array.isArray(data)) {
+                console.error('Os dados recebidos não são um array.');
+                return;
+            }
 
             data.forEach(produto => {
                 const option = document.createElement('option');
-                option.value = produto.id_produto;
-                option.textContent = produto.nome_produto;
+                option.value = produto.id_produto; // Certifique-se de que id_produto está disponível
+                option.textContent = produto.nome_produto || 'N/A';
                 select.appendChild(option);
             });
         })
         .catch(error => console.error('Erro ao carregar produtos:', error));
 }
 
+
+// Função para enviar o formulário
+document.getElementById('add-produto-form').addEventListener('submit', function(event) {
+    event.preventDefault(); 
+
+    // Captura os valores dos campos do formulário
+    const sigla = document.getElementById('sigla').value;
+    const concentracao = document.getElementById('concentracao').value;
+    const densidade = document.getElementById('densidade').value;
+    const nome_produto = document.getElementById('nome_produto').value;
+    const tipo_unidade_produto = document.getElementById('tipo_unidade_produto').value;
+    const ncm = document.getElementById('ncm').value;
+    const quantidade = document.getElementById('quantidade').value;
+
+    // Cria o objeto de dados para enviar
+    const data = {
+        sigla: sigla,
+        concentracao: concentracao,
+        densidade: densidade,
+        nome_produto: nome_produto,
+        tipo_unidade_produto: tipo_unidade_produto,
+        ncm: ncm,
+        quantidade: quantidade
+    };
+
+    // Envia os dados para a API
+    fetch('/api/addproduto', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.message) {
+            alert(result.message); 
+            loadProdutos(); // Atualiza a tabela após adicionar o produto
+            document.getElementById('add-produto-form').reset();
+        } else {
+            alert(result.error); 
+        }
+    })
+    .catch(error => console.error('Erro ao adicionar produto:', error));
+});
+
+
+// Chamar as funções para carregar produtos e selecionar produtos ao carregar a página
 document.addEventListener('DOMContentLoaded', function() {
     loadProdutos();       
-    loadProdutosSelect(); 
+    loadProdutosSelect();
     loadproduto(); 
 });
 
@@ -124,20 +188,84 @@ document.querySelectorAll('.submenu > a').forEach(menu => {
 
 // Pegar o nome do usuário logado
 function loadLoggedInUser() {
-    fetch('/api/usuario-logado')
+  fetch('/api/usuario-logado')
     .then(response => response.json())
     .then(data => {
-        const userNameElement = document.getElementById('user-name-text');
-        userNameElement.innerHTML = data.nome;
-        if (data.tipo_usuario === 'admin') {
-            document.querySelector('.admin-menu').style.display = 'block';
-        }
+      const userNameElement = document.getElementById('user-name-text');
+      userNameElement.innerHTML = data.nome;
+      if (data.tipo_usuario === 'admin') {
+        document.querySelector('.admin-menu').style.display = 'block';
+      }
     })
     .catch(error => console.error('Erro ao carregar usuário logado:', error));
 }
 loadLoggedInUser();
 
-function loadproduto(page = 1, limit = 20) {
+// Função para carregar siglas no select
+function carregarsiglas() {
+    fetch('/api/siglas') // Endpoint para obter a lista de siglas
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('sigla-select');
+            select.innerHTML = '<option value="">Selecione um produto</option>'; // Limpa e adiciona a opção padrão
+
+            data.forEach(sigla => {
+                const option = document.createElement('option');
+                option.value = sigla.id_produto; // Define o valor como o id_produto
+                option.textContent = sigla.sigla; // Define o texto como a sigla
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar siglas:', error));
+}
+
+// Função para excluir o produto
+function excluirproduto(idproduto) {
+    fetch(`/api/excluir-produto/${idproduto}`, {
+        method: 'DELETE',
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(errorData => {
+                throw new Error(errorData.message || 'Erro desconhecido ao excluir o produto');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        alert(data.message || 'produto excluído com sucesso');
+        carregarsiglas(); // Atualiza os siglas após exclusão
+    })
+    .catch(error => {
+        // Mostrar mensagem de erro
+        alert(`Erro: ${error.message}`);
+        console.error('Erro ao excluir o produto:', error);
+    });
+}
+
+// Delete-produto-form
+    document.getElementById('delete-produto-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const idproduto = document.getElementById('sigla-select').value;
+        if (!idproduto) {
+            alert('Por favor, selecione um sigla válido.');
+            return;
+        }
+
+        if (confirm('Tem certeza que deseja excluir este produto?')) {
+            excluirproduto(idproduto);
+            loadProdutos();
+            carregarsiglas(); // Atualiza os siglas 
+        }
+    });
+
+// Carrega os siglas ao inicializar a página
+ document.addEventListener('DOMContentLoaded', carregarsiglas);
+
+
+ // load produto
+    function loadproduto(page = 1, limit = 20) {
     fetch(`/api/produtoPag?page=${page}&limit=${limit}`)
         .then(response => response.json())
         .then(data => {
@@ -147,9 +275,9 @@ function loadproduto(page = 1, limit = 20) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${produto.sigla}</td>
-                    <td>${produto.nome_produto}</td>
                     <td>${produto.concentracao}</td>
                     <td>${produto.densidade}</td>
+                    <td>${produto.nome_produto}</td>
                     <td>${produto.quantidade}</td>
                     <td>${produto.tipo_unidade_produto}</td>
                     <td>${produto.ncm}</td>
@@ -162,6 +290,7 @@ function loadproduto(page = 1, limit = 20) {
         .catch(error => console.error('Erro ao carregar produtos:', error));
 }
 
+// Pagination
 function updatePagination(totalPages, currentPage) {
     const paginationDiv = document.getElementById('pagination');
     paginationDiv.innerHTML = ''; // Limpar a paginação
@@ -173,13 +302,16 @@ function updatePagination(totalPages, currentPage) {
         if (i === currentPage) {
             button.classList.add('active');
         }
-        button.addEventListener('click', () => loadproduto(i));
+        button.addEventListener('click', () => {
+            loadproduto(i); // Carregar a tabela para a página clicada
+        });
         paginationDiv.appendChild(button);
     }
 }
 
+// Generate-pdf-produto
 function geradorPdfproduto() {
-    fetch('/generate-pdf-produto', {
+            fetch('/generate-pdf-produto', {
                 method: 'GET',
             })
             .then(response => {
@@ -201,4 +333,5 @@ function geradorPdfproduto() {
                 console.error('Erro:', error);
                 alert('Erro ao gerar o PDF.');
             });
-}
+        }
+

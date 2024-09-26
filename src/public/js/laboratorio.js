@@ -1,4 +1,14 @@
     
+
+var sidemenu = document.getElementById("sidemenu");
+function openmenu(){
+    sidemenu.style.left = "0px";
+}
+function clossmenu(){
+    sidemenu.style.left = "-800px";
+}
+
+
 function Autenticado() {
     return fetch('/api/check-auth', {
         method: 'GET',
@@ -43,9 +53,14 @@ function opentab(tabname) {
 }
 
 // Pegar dados de laboratórios da API e preencher a tabela e o select
-function loadLaboratorios(page = 1, limit = 10) {
+function loadLaboratorios(page = 1, limit = 20) { // Ajustando o limite padrão
     fetch(`/api/laboratoriosPag?page=${page}&limit=${limit}`)
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         const tbody = document.getElementById('laboratorio-tbody');
         tbody.innerHTML = ''; // Limpar a tabela
@@ -63,13 +78,13 @@ function loadLaboratorios(page = 1, limit = 10) {
 }
 
 
-// Carregar laboratórios e nome do usuário logado ao inicializar a página
+// Carregar laboratórios e nome do usuário logado 
 document.addEventListener('DOMContentLoaded', function() {
     loadLaboratorios();
     loadLoggedInUser();
 });
 
-// Pegar dados de usuários da API e preencher o select para adicionar laboratório
+// Pegar dados de usuários da API e preencher o select para add laboratório
 fetch('/api/usuarios')
     .then(response => response.json())
     .then(data => {
@@ -83,7 +98,7 @@ fetch('/api/usuarios')
     })
     .catch(error => console.error('Erro ao carregar usuários:', error));
 
-// Adicionar novo laboratório
+// Add novo laboratório
 document.getElementById('add-laboratorio-form').addEventListener('submit', function(event) {
     event.preventDefault();
 
@@ -109,7 +124,7 @@ document.getElementById('add-laboratorio-form').addEventListener('submit', funct
         } else {
             alert(data.message);
 
-            // Adicionar o novo laboratório na tabela
+            // add o novo laboratório na tabela
             const tbody = document.getElementById('laboratorio-tbody');
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -118,7 +133,7 @@ document.getElementById('add-laboratorio-form').addEventListener('submit', funct
             `;
             tbody.appendChild(tr);
 
-            // Adicionar o novo laboratório no select para remoção
+            // add o novo laboratório no select para remoção
             const select = document.getElementById('laboratorios');
             const option = document.createElement('option');
             option.value = data.id_laboratorio;
@@ -127,9 +142,11 @@ document.getElementById('add-laboratorio-form').addEventListener('submit', funct
 
             // Limpar o formulário
             document.getElementById('add-laboratorio-form').reset();
+            // Recarregar a página para atualizar os dados
+            location.reload();
         }
     })
-    .catch(error => console.error('Erro ao adicionar laboratório:', error));
+    .catch(error => console.error('Erro ao add laboratório:', error));
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -166,7 +183,7 @@ function loadLaboratorios2() {
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('laboratorios-select2');
-            select.innerHTML = ''; // Limpar opções existentes
+            select.innerHTML = ''; // Limpar opções 
             data.forEach(laboratorio => {
                 const option = document.createElement('option');
                 option.value = laboratorio.id_laboratorio;
@@ -251,7 +268,6 @@ document.querySelectorAll('.submenu > a').forEach(menu => {
     });
 });
 
-// Atualiza o responsável
 document.getElementById('update-responsavel-form').addEventListener('submit', function(event) {
     event.preventDefault();
 
@@ -264,11 +280,13 @@ document.getElementById('update-responsavel-form').addEventListener('submit', fu
     console.log('ID do Laboratório:', idLaboratorio);
     console.log('Email do Novo Responsável:', emailResponsavel);
 
+    // Verificação dos valores
     if (!idLaboratorio || !emailResponsavel) {
         alert('Por favor, selecione um laboratório e um novo responsável.');
         return;
     }
 
+    // Envio da solicitação para atualizar o responsável
     fetch('/api/atualizar-responsavel', {
         method: 'POST',
         headers: {
@@ -282,12 +300,13 @@ document.getElementById('update-responsavel-form').addEventListener('submit', fu
             alert(data.error);
         } else {
             alert(data.message);
-            loadLaboratorios();
-            loadUsuarios();
+            loadLaboratorios(); // Atualiza a lista de laboratórios
+            loadUsuarios(); // Atualiza a lista de usuários
         }
     })
     .catch(error => console.error('Erro ao atualizar responsável:', error));
 });
+
 
 // Função para carregar usuários no select
 function loadUsuarios2() {
