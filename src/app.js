@@ -135,7 +135,7 @@ app.get('/protected-route', authenticate, (req, res) => {
 });
 
 app.get('/Relatorio', Autenticado, (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'public', 'Relatorio.html'), (err) => {
+  res.sendFile(path.join(process.cwd(), 'src','public', 'Relatorio.html'), (err) => {
     if (err) {
       console.error('Erro ao enviar o arquivo Relatorio.html:', err);
       res.status(500).send('Erro ao enviar o arquivo.');
