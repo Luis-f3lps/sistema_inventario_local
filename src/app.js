@@ -32,6 +32,20 @@ const app = express();
   }
 })();
 
+async function executeQuery(query, params = []) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute(query, params);
+    return rows;
+  } catch (error) {
+    console.error('Erro ao executar a consulta:', error);
+    throw error; // Re-throw para que o erro possa ser tratado na rota
+  } finally {
+    if (connection) connection.release(); // Liberar a conexão de volta ao pool
+  }
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -54,6 +68,7 @@ function Autenticado(req, res, next) {
     res.redirect('/');
   }
 }
+
 // Configurar middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -71,8 +86,8 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
 
-    // Usando o pool para fazer a consulta
-    const [rows] = await pool.execute('SELECT * FROM usuario WHERE email = ?', [email]);
+    // Usando a função executeQuery para fazer a consulta
+    const rows = await executeQuery('SELECT * FROM usuario WHERE email = ?', [email]);
 
     if (rows.length === 0) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
@@ -104,7 +119,6 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor rodando no endereço http://localhost:${PORT}`);
 });
-
 
 // Rotas protegidas
 function authenticate(req, res, next) {
