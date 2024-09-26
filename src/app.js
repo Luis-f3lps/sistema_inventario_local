@@ -69,7 +69,14 @@ function Autenticado(req, res, next) {
   }
 }
 
+// Configurar middleware para servir arquivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
 
+// Rotas do servidor
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+// Rota protegida para o Relatório
 // Rota para o Relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
   const filePath = path.join(__dirname, 'public', 'relatorio.html');
