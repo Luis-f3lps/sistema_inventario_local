@@ -70,7 +70,7 @@ function Autenticado(req, res, next) {
 }
 
 // Configurar middleware para servir arquivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'src', 'public')));
 
 // Rotas do servidor
 app.get('/', (req, res) => {
@@ -141,22 +141,6 @@ app.get('/Relatorio', Autenticado, (req, res) => {
       res.status(500).send('Erro ao enviar o arquivo.');
     }
   });
-});
-
-// Exemplo de rota para registrar usuário (com hash de senha)
-app.post('/register', async (req, res) => {
-  try {
-    const { nome, email, senha } = req.body;
-    
-    // Hash da senha antes de armazenar
-    const hashedPassword = await bcrypt.hash(senha, 10);
-
-    await connection.execute('INSERT INTO usuario (nome_usuario, email, senha) VALUES (?, ?, ?)', [nome, email, hashedPassword]);
-    res.status(201).json({ message: 'Usuário registrado com sucesso' });
-  } catch (error) {
-    console.error('Erro ao registrar usuário:', error);
-    res.status(500).json({ error: 'Erro no servidor' });
-  }
 });
 
     app.get('/Usuarios', Autenticado, (req, res) => {
