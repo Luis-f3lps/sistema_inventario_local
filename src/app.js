@@ -60,14 +60,6 @@ app.use(session({
   }
 }));
 
-// Middleware de autenticação
-function Autenticado(req, res, next) {
-  if (req.session && req.session.user) {
-    return next();
-  } else {
-    res.redirect('/');
-  }
-}
 
 // Configurar middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -131,23 +123,14 @@ app.listen(PORT, () => {
   console.log(`Servidor rodando no endereço http://localhost:${PORT}`);
 });
 
-// Rotas protegidas
-function authenticate(req, res, next) {
+// Middleware de autenticação
+function Autenticado(req, res, next) {
   if (req.session && req.session.user) {
-    next();
+    return next();
   } else {
-    res.status(401).send('Não autorizado');
+    res.redirect('/');
   }
 }
-
-// Rota protegida
-app.get('/protected-route', authenticate, (req, res) => {
-  res.send('Conteúdo protegido');
-});
-
-
-
-
     app.get('/Usuarios', Autenticado, (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
     });
