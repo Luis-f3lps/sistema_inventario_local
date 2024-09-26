@@ -69,14 +69,16 @@ function Autenticado(req, res, next) {
   }
 }
 
-// Configurar middleware para servir arquivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Rotas do servidor
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Rota protegida para o Relatório
+app.get('/Relatorio', Autenticado, (req, res) => {
+  res.sendFile('Relatorio.html', (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo.');
+    }
+  });
 });
-
 // Rota de login
 app.post('/login', async (req, res) => {
   try {
@@ -134,14 +136,7 @@ app.get('/protected-route', authenticate, (req, res) => {
   res.send('Conteúdo protegido');
 });
 
-app.get('/Relatorio', Autenticado, (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'src','public', 'Relatorio.html'), (err) => {
-    if (err) {
-      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
-      res.status(500).send('Erro ao enviar o arquivo.');
-    }
-  });
-});
+
 
 
     app.get('/Usuarios', Autenticado, (req, res) => {
