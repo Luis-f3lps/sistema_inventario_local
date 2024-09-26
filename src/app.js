@@ -63,13 +63,14 @@ app.use(session({
   secret: 'seuSegredo',
   resave: false,
   saveUninitialized: true,
+  proxy: true,
+  secureProxy: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Pode ser true ou false dependendo do ambiente
-    httpOnly: true,
-    maxAge: 8 * 60 * 60 * 1000, // 8 horas
-  }
+      secure: true,
+      httpOnly: true,
+      maxAge: 8 * 60 * 60 * 1000, // 8 horas 
+      }
 }));
-
 
 // Configurar middleware para servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -169,19 +170,17 @@ function Autenticado(req, res, next) {
     });
 
   // Rota para obter o usuário logado
-  app.get('/api/usuario-logado', (req, res) => {
-    console.log('Sessão:', req.session); // Verificar o que está na sessão
-    if (req.session.user) {
+app.get('/api/usuario-logado', (req, res) => {
+  if (req.session.user) {
       res.json({
-        email: req.session.user.email,
-        nome: req.session.user.nome,
-        tipo_usuario: req.session.user.tipo_usuario
+          email: req.session.user.email,
+          nome: req.session.user.nome,
+          tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
       });
-    } else {
+  } else {
       res.status(401).json({ error: 'Usuário não logado' });
-    }
-  });
-  
+  }
+});
 
 // Rota de logout
 app.get('/logout', (req, res) => {
