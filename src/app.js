@@ -121,7 +121,12 @@ app.get('/protected-route', authenticate, (req, res) => {
 });
 
 app.get('/Relatorio', Autenticado, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'Relatorio.html'));
+  res.sendFile(path.join(process.cwd(), 'public', 'Relatorio.html'), (err) => {
+    if (err) {
+      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
+      res.status(500).send('Erro ao enviar o arquivo.');
+    }
+  });
 });
 
 // Exemplo de rota para registrar usuário (com hash de senha)
