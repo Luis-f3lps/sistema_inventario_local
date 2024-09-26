@@ -70,7 +70,7 @@ function Autenticado(req, res, next) {
 }
 
 // Configurar middleware para servir arquivos estáticos
-app.use(express.static(path.join(__dirname, 'src', 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rotas do servidor
 app.get('/', (req, res) => {
@@ -142,6 +142,7 @@ app.get('/Relatorio', Autenticado, (req, res) => {
     }
   });
 });
+
 
     app.get('/Usuarios', Autenticado, (req, res) => {
       res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
