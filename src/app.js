@@ -3,7 +3,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import pool from './database.js'; // Caminho corrigido
+import pool from './public/database.js'; // Caminho corrigido
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import session from 'express-session';
