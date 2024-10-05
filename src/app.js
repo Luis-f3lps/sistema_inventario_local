@@ -1,3 +1,4 @@
+// src/app.js
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -63,12 +64,12 @@ async function executeQuery(query, params = []) {
 
 // Rota raiz
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html')); // Caminho corrigido
 });
 
 // Rota protegida para o Relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'relatorio.html');
+  const filePath = path.join(__dirname, 'public', 'relatorio.html'); // Caminho corrigido
   console.log('Caminho absoluto para Relatorio.html:', filePath);
   res.sendFile(filePath, (err) => {
     if (err) {
