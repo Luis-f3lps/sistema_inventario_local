@@ -1,9 +1,9 @@
-// api/index.js
+// src/app.js
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import pool from '../database.js'; // Ajuste o caminho conforme necessário
+import pool from './database.js'; // Caminho corrigido
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import session from 'express-session';
@@ -64,12 +64,12 @@ async function executeQuery(query, params = []) {
 
 // Rota raiz
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Rota protegida para o Relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, '../public', 'relatorio.html');
+  const filePath = path.join(__dirname, 'public', 'relatorio.html');
   console.log('Caminho absoluto para Relatorio.html:', filePath);
   res.sendFile(filePath, (err) => {
     if (err) {
