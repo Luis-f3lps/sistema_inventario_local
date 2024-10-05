@@ -1,5 +1,5 @@
+// api/index.js
 import express from 'express';
-import { VercelRequest, VercelResponse } from '@vercel/node';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -128,11 +128,6 @@ app.post('/logout', (req, res) => {
     res.json({ success: true });
   });
 });
-
-// Exportar a função handler para Vercel
-export default (req, res) => {
-  return app(req, res);
-};
 
 // Rota para usuários
 app.get('/api/usuarios', Autenticado, async (req, res) => {
