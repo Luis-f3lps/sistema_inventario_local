@@ -19,18 +19,20 @@ const __dirname = path.dirname(__filename);
 // Inicialização do aplicativo Express
 const app = express();
 
+// Servir arquivos estáticos da pasta public
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configurar middleware de sessão
-// Nota: Em ambiente serverless, é recomendado usar um store externo para sessões, como Redis
 app.use(session({
   secret: process.env.SESSION_SECRET || 'seuSegredo',
   resave: false,
   saveUninitialized: false,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', // true em produção com HTTPS
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 8 * 60 * 60 * 1000, // 8 horas 
   }
@@ -54,9 +56,9 @@ async function executeQuery(query, params = []) {
     return rows;
   } catch (error) {
     console.error('Erro ao executar a consulta:', error);
-    throw error; // Re-throw para que o erro possa ser tratado na rota
+    throw error;
   } finally {
-    if (connection) connection.release(); // Liberar a conexão de volta ao pool
+    if (connection) connection.release();
   }
 }
 
@@ -64,19 +66,14 @@ async function executeQuery(query, params = []) {
 
 // Rota raiz
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html')); // Caminho corrigido
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Rota protegida para o Relatório
 app.get('/Relatorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'relatorio.html'); // Caminho corrigido
+  const filePath = path.join(__dirname, 'public', 'relatorio.html');
   console.log('Caminho absoluto para Relatorio.html:', filePath);
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      console.error('Erro ao enviar o arquivo Relatorio.html:', err);
-      res.status(500).send('Erro ao enviar o arquivo Relatorio.html.');
-    }
-  });
+  res.sendFile(filePath);
 });
 
 // Rota de login
@@ -84,12 +81,10 @@ app.post('/login', async (req, res) => {
   try {
     const { email, senha } = req.body;
 
-    // Verifique se o email e a senha foram fornecidos
     if (!email || !senha) {
       return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
 
-    // Consultar o banco de dados usando a função executeQuery
     const rows = await executeQuery('SELECT * FROM usuario WHERE email = ?', [email]);
 
     if (rows.length === 0) {
@@ -98,13 +93,11 @@ app.post('/login', async (req, res) => {
 
     const user = rows[0];
 
-    // Verificar a senha
     const match = await bcrypt.compare(senha, user.senha);
     if (!match) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    // Criar a sessão
     req.session.user = {
       nome: user.nome_usuario,
       email: user.email,
