@@ -161,6 +161,7 @@ document.getElementById('add-produto-form').addEventListener('submit', function(
             alert(result.message); 
             loadProdutos(); // Atualiza a tabela após adicionar o produto
             document.getElementById('add-produto-form').reset();
+            loadproduto();
         } else {
             alert(result.error); 
         }

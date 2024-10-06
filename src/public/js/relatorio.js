@@ -176,33 +176,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+// Pegar o nome do usuário logado
 function loadLoggedInUser() {
-    fetch('/api/usuario-logado', {
-      method: 'GET',
-      credentials: 'include' // Inclui cookies de sessão
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Usuário não logado');
-      }
-      return response.json();
-    })
+  fetch('/api/usuario-logado')
+    .then(response => response.json())
     .then(data => {
       const userNameElement = document.getElementById('user-name-text');
-      userNameElement.innerHTML = data.nome; // Atualiza o nome do usuário na interface
+      userNameElement.innerHTML = data.nome;
       if (data.tipo_usuario === 'admin') {
-        document.querySelector('.admin-menu').style.display = 'block'; // Exibe o menu de admin
+        document.querySelector('.admin-menu').style.display = 'block';
       }
     })
-    .catch(error => {
-      console.error('Erro ao carregar usuário logado:', error);
-      // Aqui você pode tratar o erro de forma mais amigável,
-      // como redirecionar o usuário para a página de login ou exibir uma mensagem.
-      alert('Você não está logado. Por favor, faça login.');
-      window.location.href = '/'; // Redireciona para a página inicial ou de login
-    });
+    .catch(error => console.error('Erro ao carregar usuário logado:', error));
 }
 loadLoggedInUser();
+
 
 document.addEventListener('DOMContentLoaded', function() {
     fetch('/api/tabelaregistraentradaInico')
@@ -225,6 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Erro ao carregar registros de entrada:', error));
 });
+
 
 
 document.getElementById('filter-form2').addEventListener('submit', function(event) {
