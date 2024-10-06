@@ -85,7 +85,8 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
     }
 
-    const rows = await executeQuery('SELECT * FROM usuario WHERE email = ?', [email]);
+    // Usando o pool para fazer a consulta
+    const [rows] = await pool.execute('SELECT * FROM usuario WHERE email = ?', [email]);
 
     if (rows.length === 0) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
@@ -93,6 +94,7 @@ app.post('/login', async (req, res) => {
 
     const user = rows[0];
 
+    // Verificar se a senha fornecida corresponde ao hash armazenado
     const match = await bcrypt.compare(senha, user.senha);
     if (!match) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
@@ -111,14 +113,61 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Iniciar o servidor
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando no endereço http://localhost:${PORT}`);
+});
+
+app.get('/Relatorio', Autenticado, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Relatorio.html'));
+});
+
+    app.get('/Usuarios', Autenticado, (req, res) => {
+      res.sendFile(path.join(__dirname, 'public', 'Usuarios.html'));
+    });
+      app.get('/Produto', Autenticado, (req, res) => {
+      res.sendFile(path.join(__dirname, 'public', 'Produto.html'));
+    });
+    
+    app.get('/MovimentacaoProduto', Autenticado, (req, res) => {
+      res.sendFile(path.join(__dirname, 'public', 'MovimentacaoProduto.html'));
+    });
+
+    app.get('/EditarMovimentacoes', Autenticado, (req, res) => {
+      res.sendFile(path.join(__dirname, 'public', 'EditarMovimentacoes.html'));
+    });
+
+    app.get('/Inventario', Autenticado, (req, res) => {
+      res.sendFile(path.join(__dirname, 'public', 'Inventario.html'));
+    });
+  
+    app.get('/Laboratorio', Autenticado, (req, res) => {
+      res.sendFile(path.join(__dirname, 'public', 'Laboratorio.html'));
+    });
+
+  // Rota para obter o usuário logado
+app.get('/api/usuario-logado', (req, res) => {
+  if (req.session.user) {
+      res.json({
+          email: req.session.user.email,
+          nome: req.session.user.nome,
+          tipo_usuario: req.session.user.tipo_usuario // Retornando o tipo do usuário
+      });
+  } else {
+      res.status(401).json({ error: 'Usuário não logado' });
+  }
+});
+
 // Rota de logout
-app.post('/logout', (req, res) => {
+app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
-      return res.status(500).json({ error: 'Erro ao encerrar a sessão' });
+      console.error('Erro ao destruir a sessão:', err);
+      return res.status(500).json({ error: 'Erro ao fazer logout' });
     }
-    res.clearCookie('connect.sid'); // Nome do cookie pode variar
-    res.json({ success: true });
+    res.clearCookie('connect.sid'); // Limpa o cookie da sessão
+    res.redirect('/');
   });
 });
 
@@ -290,39 +339,42 @@ app.get('/api/laboratorios', Autenticado, async (req, res) => {
 
 // Paginação para laboratórios
 app.get('/api/laboratoriosPag', Autenticado, async (req, res) => {
-  const { page = 1, limit = 20 } = req.query; // Adicionando limite aqui
-  const pageInt = parseInt(page, 10);
-  const limitInt = parseInt(limit, 10); // Convertendo limit para número
+    const { page = 1, limit = 20 } = req.query; // Parâmetros de página e limite
+    const pageInt = parseInt(page, 10);
+    const limitInt = parseInt(limit, 10); // Convertendo limit para número
 
-  if (isNaN(pageInt) || isNaN(limitInt)) {
-      return res.status(400).json({ error: 'Os parâmetros de página e limite devem ser inteiros.' });
-  }
+    if (isNaN(pageInt) || isNaN(limitInt)) {
+        return res.status(400).json({ error: 'Os parâmetros de página e limite devem ser inteiros.' });
+    }
 
-  const offset = (pageInt - 1) * limitInt;
+    const offset = (pageInt - 1) * limitInt;
 
-  try {
-      const [rows] = await pool.execute(`
-          SELECT l.id_laboratorio, l.nome_laboratorio, u.email AS usuario_email, u.nome_usuario
-          FROM laboratorio l
-          JOIN usuario u ON l.usuario_email = u.email
-          LIMIT ? OFFSET ?
-      `, [limitInt, offset]); // Usando parâmetros para evitar SQL injection
+    try {
+        // Usando pool para executar a consulta paginada
+        const [rows] = await pool.execute(`
+            SELECT l.id_laboratorio, l.nome_laboratorio, u.email AS usuario_email, u.nome_usuario
+            FROM laboratorio l
+            JOIN usuario u ON l.usuario_email = u.email
+            LIMIT ? OFFSET ?
+        `, [limitInt, offset]); // Usando parâmetros para evitar SQL injection
 
-      const [countResult] = await pool.execute('SELECT COUNT(*) as total FROM laboratorio');
-      const totalItems = countResult[0].total;
-      const totalPages = Math.ceil(totalItems / limitInt);
+        // Contar o total de laboratórios
+        const [countResult] = await pool.execute('SELECT COUNT(*) as total FROM laboratorio');
+        const totalItems = countResult[0].total;
+        const totalPages = Math.ceil(totalItems / limitInt);
 
-      res.json({
-          data: rows,
-          totalItems,
-          totalPages,
-          currentPage: pageInt,
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Erro no servidor' });
-  }
+        res.json({
+            data: rows,
+            totalItems,
+            totalPages,
+            currentPage: pageInt,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro no servidor' });
+    }
 });
+
 
 
 // Adicionar um laboratório
@@ -494,33 +546,47 @@ app.get('/api/est', Autenticado, async (req, res) => {
   }
 });
 
-app.get('/api/produtosPag', Autenticado, async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
-  const offset = (page - 1) * limit; // Cálculo do offset para a paginização
+// Obter todos os produtos com paginação
+app.get('/api/produtoPag', Autenticado, async (req, res) => {
+  const { page = 1, limit = 20 } = req.query;
+
+  // Converter page e limit para inteiros
+  const pageInt = parseInt(page, 10);
+  const limitInt = parseInt(limit, 10);
+
+  if (isNaN(pageInt) || isNaN(limitInt) || limitInt <= 0 || pageInt <= 0) {
+      return res.status(400).json({ error: 'Os parâmetros de página e limite devem ser números inteiros positivos.' });
+  }
+
+  // Limite máximo para o número de itens por página
+  const MAX_LIMIT = 100;
+  const finalLimit = limitInt > MAX_LIMIT ? MAX_LIMIT : limitInt;
+
+  const offset = (pageInt - 1) * finalLimit;
 
   try {
-    const [produtos] = await pool.execute(
-      'SELECT sigla, nome_produto, concentracao, densidade, quantidade, tipo_unidade_produto, ncm FROM produto LIMIT ? OFFSET ?',
-      [limit, offset]
-    );
-    
-    // Opcional: você pode retornar também a contagem total de produtos para facilitar a paginização
-    const [totalCountResult] = await pool.execute('SELECT COUNT(*) as total FROM produto');
-    const total = totalCountResult[0].total;
+      // Usando pool de conexões para consultas
+      const [rows] = await pool.query(`
+          SELECT sigla, concentracao, densidade, nome_produto, quantidade, tipo_unidade_produto, ncm
+          FROM produto
+          LIMIT ? OFFSET ?`, [finalLimit, offset]);
 
-    res.json({
-      data: produtos,
-      total: total,
-      page: page,
-      limit: limit
-    });
+      // Conta o total de registros
+      const [countResult] = await pool.query('SELECT COUNT(*) as total FROM produto');
+      const totalItems = countResult[0].total;
+      const totalPages = Math.ceil(totalItems / finalLimit);
+
+      res.json({
+          data: rows,
+          totalItems,
+          totalPages,
+          currentPage: pageInt,
+      });
   } catch (error) {
-    console.error('Erro ao obter produtos:', error);
-    res.status(500).json({ error: 'Erro no servidor ao obter produtos' });
+      console.error('Erro ao obter produtos:', error);
+      res.status(500).json({ error: 'Erro no servidor ao obter produtos.' });
   }
 });
-
 
 
 
