@@ -9,9 +9,6 @@ import fs from 'fs';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
 
-// Configuração do dotenv
-dotenv.config();
-
 // Definindo __filename e __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
