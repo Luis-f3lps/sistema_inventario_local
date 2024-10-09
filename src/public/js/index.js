@@ -29,7 +29,6 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         errorMessage.style.display = 'block'; 
     });
 });
-
 let password = document.getElementById('password');
 let togglePassword = document.getElementById('toggle');
 
