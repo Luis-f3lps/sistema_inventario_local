@@ -1,36 +1,66 @@
-// src/app.js
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import pool from './public/database.js'; // Caminho corrigido
+import pool from './database.js'; // Importa o pool de conexões
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import session from 'express-session';
-import bcrypt from 'bcrypt';
+import MySQLStore from 'express-mysql-session'; // Importando o MySQLStore
+import bcrypt from 'bcrypt'; 
 
 // Definindo __filename e __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Inicialização do aplicativo Express
+// Carregando variáveis de ambiente do arquivo variaveis.env
+dotenv.config({ path: path.resolve(__dirname, 'variaveis.env') }); // Ajuste o caminho conforme necessário
+console.log({
+  DB_HOST: process.env.DB_HOST,
+  DB_USER: process.env.DB_USER,
+  DB_PASSWORD: process.env.DB_PASSWORD,
+  DB_NAME: process.env.DB_NAME,
+});
+
 const app = express();
 
-// Servir arquivos estáticos da pasta public
-app.use(express.static(path.join(__dirname, 'public')));
+// Testar a conexão ao banco de dados
+(async () => {
+  try {
+    const connection = await pool.getConnection();
+    console.log('Conexão bem-sucedida ao banco de dados!');
+    connection.release(); // Liberar a conexão de volta ao pool
+  } catch (err) {
+    console.error('Erro ao conectar ao banco de dados:', err);
+  }
+})();
 
-// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configurar middleware de sessão
+// Configurar middleware de sessão usando express-mysql-session
+const sessionStore = new MySQLStore({
+  // Configurações do banco de dados para o MySQLStore
+  expiration: 86400000, // Expiração da sessão em milissegundos (1 dia)
+  createDatabaseTable: true, // Cria a tabela se não existir
+  schema: {
+    tableName: 'sessions',
+    columnNames: {
+      session_id: 'session_id',
+      session: 'session',
+      expires: 'expires',
+      data: 'data',
+    },
+  },
+}, pool); // Usando o pool de conexões
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'seuSegredo',
+  secret: 'seuSegredo',
   resave: false,
   saveUninitialized: false,
+  store: sessionStore, // Usando o MySQLStore
   cookie: { 
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
+    secure: false, // Altere para true em produção com HTTPS
     maxAge: 8 * 60 * 60 * 1000, // 8 horas 
   }
 }));
@@ -44,33 +74,12 @@ function Autenticado(req, res, next) {
   }
 }
 
-// Função para executar consultas no banco de dados
-async function executeQuery(query, params = []) {
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    const [rows] = await connection.execute(query, params);
-    return rows;
-  } catch (error) {
-    console.error('Erro ao executar a consulta:', error);
-    throw error;
-  } finally {
-    if (connection) connection.release();
-  }
-}
+// Configurar middleware para servir arquivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Rotas
-
-// Rota raiz
+// Rotas do servidor
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Rota protegida para o Relatório
-app.get('/Relatorio', Autenticado, (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'relatorio.html');
-  console.log('Caminho absoluto para Relatorio.html:', filePath);
-  res.sendFile(filePath);
 });
 
 // Rota de login
@@ -109,7 +118,6 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
-
 // Iniciar o servidor
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
