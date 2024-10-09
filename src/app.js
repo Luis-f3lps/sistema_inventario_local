@@ -46,10 +46,9 @@ const sessionStore = new MySQLStore({
   schema: {
     tableName: 'sessions',
     columnNames: {
-      session_id: 'session_id',
-      session: 'session',
-      expires: 'expires',
-      data: 'data',
+      session_id: 'session_id', // Mantendo o nome da coluna para o ID da sessão
+      expires: 'expires', // Mantendo o nome da coluna para a expiração
+      data: 'data', // Mantendo o nome da coluna para os dados da sessão
     },
   },
 }, pool); // Usando o pool de conexões
